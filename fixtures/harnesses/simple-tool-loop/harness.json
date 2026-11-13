@@ -1,0 +1,8 @@
+{
+  "id": "simple-tool-loop",
+  "name": "Weather assistant (simple tool-use loop)",
+  "description": "SYNTHETIC fixture. A minimal Anthropic-style tool-use loop with two tools, a turn budget and a network effect.",
+  "synthetic": true,
+  "version": "1",
+  "include": ["src/**/*.ts"]
+}

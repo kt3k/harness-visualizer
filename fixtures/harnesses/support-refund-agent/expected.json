@@ -1,0 +1,132 @@
+{
+ "note": "Hand-labelled by reading the fixture source (not derived from analyzer output). 'check' = code that can stop or divert an operation; 'model_branch' = control decided by model output (incl. tool dispatch sites).",
+ "items": [
+  {
+   "kind": "model_call",
+   "file": "src/router.ts",
+   "line": 18
+  },
+  {
+   "kind": "model_call",
+   "file": "src/router.ts",
+   "line": 39
+  },
+  {
+   "kind": "model_call",
+   "file": "src/refund-agent.ts",
+   "line": 18
+  },
+  {
+   "kind": "effect",
+   "file": "src/refund-agent.ts",
+   "line": 46
+  },
+  {
+   "kind": "effect",
+   "file": "src/refund-agent.ts",
+   "line": 51
+  },
+  {
+   "kind": "effect",
+   "file": "src/approvals.ts",
+   "line": 16
+  },
+  {
+   "kind": "state_access",
+   "file": "src/router.ts",
+   "line": 17
+  },
+  {
+   "kind": "state_access",
+   "file": "src/router.ts",
+   "line": 32
+  },
+  {
+   "kind": "state_access",
+   "file": "src/router.ts",
+   "line": 36
+  },
+  {
+   "kind": "state_access",
+   "file": "src/refund-agent.ts",
+   "line": 27
+  },
+  {
+   "kind": "state_access",
+   "file": "src/refund-agent.ts",
+   "line": 36
+  },
+  {
+   "kind": "state_access",
+   "file": "src/approvals.ts",
+   "line": 5
+  },
+  {
+   "kind": "state_access",
+   "file": "src/approvals.ts",
+   "line": 11
+  },
+  {
+   "kind": "state_access",
+   "file": "src/approvals.ts",
+   "line": 17
+  },
+  {
+   "kind": "check",
+   "file": "src/approvals.ts",
+   "line": 13
+  },
+  {
+   "kind": "check",
+   "file": "src/refund-agent.ts",
+   "line": 41
+  },
+  {
+   "kind": "model_branch",
+   "file": "src/router.ts",
+   "line": 28
+  },
+  {
+   "kind": "model_branch",
+   "file": "src/refund-agent.ts",
+   "line": 26
+  },
+  {
+   "kind": "model_branch",
+   "file": "src/refund-agent.ts",
+   "line": 32
+  },
+  {
+   "kind": "model_branch",
+   "file": "src/refund-agent.ts",
+   "line": 34
+  },
+  {
+   "kind": "human_input",
+   "file": "src/refund-agent.ts",
+   "line": 42
+  }
+ ],
+ "rules": [
+  {
+   "startsWith": "Never refund more than $100",
+   "truth": "mismatch"
+  },
+  {
+   "startsWith": "Never refund an order that is older",
+   "truth": "not-enforced"
+  },
+  {
+   "startsWith": "Do not promise refunds",
+   "truth": "not-enforced"
+  },
+  {
+   "startsWith": "Use \"refund\" only",
+   "truth": "not-enforced"
+  },
+  {
+   "startsWith": "Do not discuss orders",
+   "truth": "not-enforced"
+  }
+ ]
+}

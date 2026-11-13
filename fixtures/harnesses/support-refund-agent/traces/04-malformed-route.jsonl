@@ -1,0 +1,8 @@
+// {"label":"Router returns no tool call","description":"Malformed model output: the forced route tool call is missing, so the router falls through to its default branch.","synthetic":true,"adversarial":false}
+{"v":1,"traceId":"support-refund-agent:04-malformed-route","spanId":"s1","seq":1,"ts":"2026-11-01T10:00:00.137Z","type":"run.start","name":"Router returns no tool call"}
+{"v":1,"traceId":"support-refund-agent:04-malformed-route","spanId":"s2","seq":2,"ts":"2026-11-01T10:00:00.274Z","type":"external.event","parentSpanId":"s1","nodeId":"event:entry:src/router.ts#handleCustomerMessage"}
+{"v":1,"traceId":"support-refund-agent:04-malformed-route","spanId":"s2","seq":3,"ts":"2026-11-01T10:00:00.411Z","type":"state.read","parentSpanId":"s1","nodeId":"memoryread:src/router.ts#handleCustomerMessage/0"}
+{"v":1,"traceId":"support-refund-agent:04-malformed-route","spanId":"s2","seq":4,"ts":"2026-11-01T10:00:00.548Z","type":"model.request","parentSpanId":"s1","nodeId":"modelcall:src/router.ts#handleCustomerMessage/0"}
+{"v":1,"traceId":"support-refund-agent:04-malformed-route","spanId":"s2","seq":5,"ts":"2026-11-01T10:00:00.685Z","type":"model.response","parentSpanId":"s1","nodeId":"modelcall:src/router.ts#handleCustomerMessage/0","status":"error","outputSummary":"(text only, no tool_use block)"}
+{"v":1,"traceId":"support-refund-agent:04-malformed-route","spanId":"s2","seq":6,"ts":"2026-11-01T10:00:00.822Z","type":"termination","parentSpanId":"s1","nodeId":"termination:src/router.ts#handleCustomerMessage/4","name":"did not understand"}
+{"v":1,"traceId":"support-refund-agent:04-malformed-route","spanId":"s1","seq":7,"ts":"2026-11-01T10:00:00.959Z","type":"run.end"}

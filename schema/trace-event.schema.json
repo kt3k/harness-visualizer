@@ -1,0 +1,100 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Harness trace event v1 (one per JSONL line)",
+  "type": "object",
+  "required": [
+    "v",
+    "traceId",
+    "spanId",
+    "seq",
+    "ts",
+    "type"
+  ],
+  "properties": {
+    "v": {
+      "const": 1
+    },
+    "traceId": {
+      "type": "string"
+    },
+    "spanId": {
+      "type": "string"
+    },
+    "parentSpanId": {
+      "type": "string"
+    },
+    "seq": {
+      "type": "integer"
+    },
+    "ts": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "type": {
+      "enum": [
+        "run.start",
+        "run.end",
+        "agent.start",
+        "agent.end",
+        "loop.iteration",
+        "model.request",
+        "model.response",
+        "decision",
+        "tool.request",
+        "authz.decision",
+        "approval.request",
+        "approval.response",
+        "tool.execute",
+        "tool.result",
+        "state.read",
+        "state.write",
+        "error",
+        "retry",
+        "cancel",
+        "termination",
+        "external.event"
+      ]
+    },
+    "nodeId": {
+      "type": "string"
+    },
+    "loc": {
+      "type": "object",
+      "required": [
+        "file",
+        "line"
+      ],
+      "properties": {
+        "file": {
+          "type": "string"
+        },
+        "line": {
+          "type": "integer"
+        }
+      }
+    },
+    "name": {
+      "type": "string"
+    },
+    "status": {
+      "enum": [
+        "ok",
+        "error",
+        "denied",
+        "approved",
+        "rejected",
+        "cancelled",
+        "pending"
+      ]
+    },
+    "inputHash": {
+      "type": "string"
+    },
+    "outputSummary": {
+      "type": "string"
+    },
+    "attrs": {
+      "type": "object"
+    }
+  }
+}

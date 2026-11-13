@@ -1,0 +1,83 @@
+{
+ "note": "Hand-labelled by reading the fixture source (not derived from analyzer output). 'check' = code that can stop or divert an operation; 'model_branch' = control decided by model output (incl. tool dispatch sites).",
+ "items": [
+  {
+   "kind": "model_call",
+   "file": "src/orchestrator.ts",
+   "line": 22
+  },
+  {
+   "kind": "model_call",
+   "file": "src/orchestrator.ts",
+   "line": 37
+  },
+  {
+   "kind": "model_call",
+   "file": "src/researcher.ts",
+   "line": 29
+  },
+  {
+   "kind": "effect",
+   "file": "src/orchestrator.ts",
+   "line": 44
+  },
+  {
+   "kind": "effect",
+   "file": "src/researcher.ts",
+   "line": 40
+  },
+  {
+   "kind": "effect",
+   "file": "src/researcher.ts",
+   "line": 47
+  },
+  {
+   "kind": "check",
+   "file": "src/researcher.ts",
+   "line": 26
+  },
+  {
+   "kind": "check",
+   "file": "src/researcher.ts",
+   "line": 44
+  },
+  {
+   "kind": "check",
+   "file": "src/researcher.ts",
+   "line": 51
+  },
+  {
+   "kind": "check",
+   "file": "src/budget.ts",
+   "line": 10
+  },
+  {
+   "kind": "model_branch",
+   "file": "src/researcher.ts",
+   "line": 33
+  },
+  {
+   "kind": "model_branch",
+   "file": "src/researcher.ts",
+   "line": 39
+  }
+ ],
+ "rules": [
+  {
+   "startsWith": "Write a report",
+   "truth": "not-enforced"
+  },
+  {
+   "startsWith": "Do not include claims",
+   "truth": "not-enforced"
+  },
+  {
+   "startsWith": "Only fetch pages",
+   "truth": "enforced"
+  },
+  {
+   "startsWith": "Never submit forms",
+   "truth": "not-enforced"
+  }
+ ]
+}

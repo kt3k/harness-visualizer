@@ -1,0 +1,318 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://harness-visualizer.local/schema/harness-ir-0.1.0.json",
+  "title": "Harness IR 0.1.0",
+  "type": "object",
+  "required": [
+    "irVersion",
+    "harness",
+    "analysis",
+    "nodes",
+    "edges",
+    "coverage"
+  ],
+  "$defs": {
+    "sourceRef": {
+      "type": "object",
+      "required": [
+        "file",
+        "startLine",
+        "endLine"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "file": {
+          "type": "string"
+        },
+        "startLine": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "endLine": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "symbol": {
+          "type": "string"
+        },
+        "role": {
+          "enum": [
+            "code",
+            "prompt",
+            "config",
+            "trace"
+          ]
+        },
+        "snippet": {
+          "type": "string"
+        }
+      }
+    },
+    "evidence": {
+      "type": "object",
+      "required": [
+        "basis",
+        "method",
+        "claim"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "basis": {
+          "enum": [
+            "static",
+            "inferred",
+            "runtime",
+            "unknown"
+          ]
+        },
+        "method": {
+          "type": "string"
+        },
+        "claim": {
+          "type": "string"
+        },
+        "ref": {
+          "$ref": "#/$defs/sourceRef"
+        },
+        "confidence": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        }
+      }
+    }
+  },
+  "properties": {
+    "irVersion": {
+      "const": "0.1.0"
+    },
+    "harness": {
+      "type": "object",
+      "required": [
+        "id",
+        "name",
+        "synthetic"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "synthetic": {
+          "type": "boolean"
+        },
+        "version": {
+          "type": "string"
+        }
+      }
+    },
+    "analysis": {
+      "type": "object",
+      "required": [
+        "analyzer",
+        "analyzerVersion",
+        "adapter",
+        "inputsHash",
+        "redaction"
+      ],
+      "properties": {
+        "inputsHash": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "redaction": {
+          "enum": [
+            "strict",
+            "standard"
+          ]
+        }
+      }
+    },
+    "nodes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "kind",
+          "label",
+          "sourceRefs",
+          "evidence",
+          "assurance",
+          "uncertainties",
+          "attrs"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "kind": {
+            "enum": [
+              "Harness",
+              "Agent",
+              "Loop",
+              "Junction",
+              "Procedure",
+              "ToolSet",
+              "Tool",
+              "State",
+              "Decision",
+              "ModelCall",
+              "ToolRequest",
+              "Guard",
+              "Authorization",
+              "HumanApproval",
+              "Effect",
+              "MemoryRead",
+              "MemoryWrite",
+              "Prompt",
+              "PromptRule",
+              "Termination",
+              "ExternalEvent",
+              "Unknown"
+            ]
+          },
+          "label": {
+            "type": "string"
+          },
+          "parent": {
+            "type": "string"
+          },
+          "summary": {
+            "type": "string"
+          },
+          "authority": {
+            "enum": [
+              "code",
+              "model",
+              "human",
+              "external",
+              "unknown"
+            ]
+          },
+          "sourceRefs": {
+            "type": "array",
+            "items": {
+              "$ref": "#/$defs/sourceRef"
+            }
+          },
+          "evidence": {
+            "type": "array",
+            "items": {
+              "$ref": "#/$defs/evidence"
+            }
+          },
+          "assurance": {
+            "type": "object",
+            "required": [
+              "basis"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "basis": {
+                "enum": [
+                  "static",
+                  "inferred",
+                  "runtime",
+                  "unknown"
+                ]
+              },
+              "enforcement": {
+                "enum": [
+                  "enforced",
+                  "advisory",
+                  "none",
+                  "unknown"
+                ]
+              }
+            }
+          },
+          "uncertainties": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "attrs": {
+            "type": "object"
+          }
+        }
+      }
+    },
+    "edges": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "kind",
+          "from",
+          "to",
+          "evidence",
+          "attrs"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "transition",
+              "invokes",
+              "dispatches",
+              "resumes",
+              "offers",
+              "context",
+              "reads",
+              "writes",
+              "interprets",
+              "gates",
+              "corresponds",
+              "causal-hypothesis"
+            ]
+          },
+          "from": {
+            "type": "string"
+          },
+          "to": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "condition": {
+            "type": "string"
+          },
+          "evidence": {
+            "type": "array",
+            "items": {
+              "$ref": "#/$defs/evidence"
+            }
+          },
+          "attrs": {
+            "type": "object"
+          }
+        }
+      }
+    },
+    "coverage": {
+      "type": "object",
+      "required": [
+        "filesAnalyzed",
+        "callSites",
+        "unresolved",
+        "unlinkedNodes",
+        "sourceLinkCoverage",
+        "gaps"
+      ]
+    }
+  }
+}

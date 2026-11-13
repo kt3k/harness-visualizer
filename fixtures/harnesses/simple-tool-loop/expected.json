@@ -1,0 +1,49 @@
+{
+ "note": "Hand-labelled by reading the fixture source (not derived from analyzer output). 'check' = code that can stop or divert an operation; 'model_branch' = control decided by model output (incl. tool dispatch sites).",
+ "items": [
+  {
+   "kind": "model_call",
+   "file": "src/agent.ts",
+   "line": 16
+  },
+  {
+   "kind": "effect",
+   "file": "src/tools.ts",
+   "line": 30
+  },
+  {
+   "kind": "check",
+   "file": "src/tools.ts",
+   "line": 27
+  },
+  {
+   "kind": "model_branch",
+   "file": "src/agent.ts",
+   "line": 25
+  },
+  {
+   "kind": "model_branch",
+   "file": "src/agent.ts",
+   "line": 31
+  },
+  {
+   "kind": "model_branch",
+   "file": "src/tools.ts",
+   "line": 25
+  }
+ ],
+ "rules": [
+  {
+   "startsWith": "Use the get_weather",
+   "truth": "not-enforced"
+  },
+  {
+   "startsWith": "Only answer questions",
+   "truth": "not-enforced"
+  },
+  {
+   "startsWith": "Always state the unit",
+   "truth": "not-enforced"
+  }
+ ]
+}

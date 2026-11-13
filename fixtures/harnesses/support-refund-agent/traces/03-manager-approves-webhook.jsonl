@@ -1,0 +1,9 @@
+// {"label":"Manager approves queued refund (webhook)","description":"Separate run triggered by the back-office webhook; executes the refund.","synthetic":true,"adversarial":false}
+{"v":1,"traceId":"support-refund-agent:03-manager-approves-webhook","spanId":"s1","seq":1,"ts":"2026-11-01T10:00:00.137Z","type":"run.start","name":"Manager approves queued refund (webhook)"}
+{"v":1,"traceId":"support-refund-agent:03-manager-approves-webhook","spanId":"s2","seq":2,"ts":"2026-11-01T10:00:00.274Z","type":"external.event","parentSpanId":"s1","nodeId":"event:src/approvals.ts#onApprovalDecision","name":"approval decision","attrs":{"approved":true}}
+{"v":1,"traceId":"support-refund-agent:03-manager-approves-webhook","spanId":"s2","seq":3,"ts":"2026-11-01T10:00:00.411Z","type":"state.read","parentSpanId":"s1","nodeId":"memoryread:src/approvals.ts#onApprovalDecision/0"}
+{"v":1,"traceId":"support-refund-agent:03-manager-approves-webhook","spanId":"s2","seq":4,"ts":"2026-11-01T10:00:00.548Z","type":"authz.decision","parentSpanId":"s1","nodeId":"authorization:src/approvals.ts#onApprovalDecision/0","status":"ok"}
+{"v":1,"traceId":"support-refund-agent:03-manager-approves-webhook","spanId":"s2","seq":5,"ts":"2026-11-01T10:00:00.685Z","type":"tool.execute","parentSpanId":"s1","nodeId":"effect:src/approvals.ts#onApprovalDecision/0","name":"stripe.refunds.create"}
+{"v":1,"traceId":"support-refund-agent:03-manager-approves-webhook","spanId":"s2","seq":6,"ts":"2026-11-01T10:00:00.822Z","type":"state.write","parentSpanId":"s1","nodeId":"memorywrite:src/approvals.ts#onApprovalDecision/0"}
+{"v":1,"traceId":"support-refund-agent:03-manager-approves-webhook","spanId":"s2","seq":7,"ts":"2026-11-01T10:00:00.959Z","type":"termination","parentSpanId":"s1","nodeId":"termination:src/approvals.ts#onApprovalDecision/1","name":"refunded"}
+{"v":1,"traceId":"support-refund-agent:03-manager-approves-webhook","spanId":"s1","seq":8,"ts":"2026-11-01T10:00:01.096Z","type":"run.end"}

@@ -1,0 +1,8 @@
+{
+  "id": "research-orchestrator",
+  "name": "Research orchestrator with parallel, recursive researchers",
+  "description": "SYNTHETIC fixture. A planner model call fans out to parallel researcher subagents (Promise.allSettled), researchers may recursively spawn sub-research up to a depth limit, a shared token budget and an AbortController timeout bound the run, and a synthesizer writes a report file.",
+  "synthetic": true,
+  "version": "1",
+  "include": ["src/**/*.ts"]
+}

@@ -1,0 +1,1805 @@
+{
+  "irVersion": "0.1.0",
+  "harness": {
+    "id": "simple-tool-loop",
+    "name": "Weather assistant (simple tool-use loop)",
+    "description": "SYNTHETIC fixture. A minimal Anthropic-style tool-use loop with two tools, a turn budget and a network effect.",
+    "synthetic": true,
+    "version": "1"
+  },
+  "analysis": {
+    "analyzer": "harness-visualizer/ts-adapter",
+    "analyzerVersion": "0.1.0",
+    "adapter": "typescript",
+    "inputsHash": "7b09a31eb87df4eed671293cb1b8f4177859347f5fe796950ca7f4b81145202b",
+    "redaction": "standard"
+  },
+  "nodes": [
+    {
+      "id": "harness",
+      "kind": "Harness",
+      "label": "Weather assistant (simple tool-use loop)",
+      "summary": "SYNTHETIC fixture. A minimal Anthropic-style tool-use loop with two tools, a turn budget and a network effect.",
+      "sourceRefs": [
+        {
+          "file": "harness.json",
+          "startLine": 1,
+          "endLine": 1,
+          "role": "config"
+        }
+      ],
+      "evidence": [
+        {
+          "basis": "static",
+          "method": "config",
+          "claim": "Harness declared in harness.json"
+        }
+      ],
+      "assurance": {
+        "basis": "static"
+      },
+      "uncertainties": [],
+      "attrs": {}
+    },
+    {
+      "id": "state:src/agent.ts#runWeatherAgent/messages",
+      "kind": "State",
+      "label": "conversation runWeatherAgent.messages",
+      "parent": "harness",
+      "summary": "In-process conversation history passed to model calls. Lost when the run ends.",
+      "sourceRefs": [
+        {
+          "file": "src/agent.ts",
+          "startLine": 13,
+          "endLine": 13,
+          "symbol": "runWeatherAgent",
+          "role": "code",
+          "snippet": "messages: any[] = [{ role: \"user\", content: question }]"
+        }
+      ],
+      "evidence": [
+        {
+          "basis": "static",
+          "method": "ast:messages-slot",
+          "claim": "variable passed as 'messages' to a model call"
+        }
+      ],
+      "assurance": {
+        "basis": "static"
+      },
+      "uncertainties": [],
+      "attrs": {
+        "persistence": "ephemeral",
+        "medium": "process memory",
+        "scope": "per run",
+        "locator": "messages"
+      }
+    },
+    {
+      "id": "toolset:src/tools.ts#WEATHER_TOOLS",
+      "kind": "ToolSet",
+      "label": "tool set WEATHER_TOOLS",
+      "parent": "harness",
+      "summary": "2 tool definitions that can be offered to a model.",
+      "sourceRefs": [
+        {
+          "file": "src/tools.ts",
+          "startLine": 3,
+          "endLine": 22,
+          "symbol": "WEATHER_TOOLS",
+          "role": "code",
+          "snippet": "WEATHER_TOOLS = ["
+        }
+      ],
+      "evidence": [
+        {
+          "basis": "static",
+          "method": "ast:tool-definitions",
+          "claim": "array of tool definition objects (name + schema)"
+        }
+      ],
+      "assurance": {
+        "basis": "static"
+      },
+      "uncertainties": [],
+      "attrs": {
+        "tools": [
+          "get_weather",
+          "convert_units"
+        ]
+      }
+    },
+    {
+      "id": "tool:src/tools.ts#WEATHER_TOOLS.get_weather",
+      "kind": "Tool",
+      "label": "tool get_weather",
+      "parent": "toolset:src/tools.ts#WEATHER_TOOLS",
+      "summary": "Get current weather for a city.",
+      "authority": "model",
+      "sourceRefs": [
+        {
+          "file": "src/tools.ts",
+          "startLine": 4,
+          "endLine": 12,
+          "role": "code",
+          "snippet": "{"
+        }
+      ],
+      "evidence": [
+        {
+          "basis": "static",
+          "method": "ast:tool-definition",
+          "claim": "tool definition object with name 'get_weather'"
+        }
+      ],
+      "assurance": {
+        "basis": "static"
+      },
+      "uncertainties": [],
+      "attrs": {
+        "name": "get_weather",
+        "description": "Get current weather for a city.",
+        "schema": "{ name: \"get_weather\", description: \"Get current weather for a city.\", input_schema: { type: \"object\", properties: { city: { type: \"string\" } }, required: [\"city\"], }, }",
+        "entryIds": [
+          "guard:src/tools.ts#runTool/0"
+        ],
+        "exitIds": []
+      }
+    },
+    {
+      "id": "tool:src/tools.ts#WEATHER_TOOLS.convert_units",
+      "kind": "Tool",
+      "label": "tool convert_units",
+      "parent": "toolset:src/tools.ts#WEATHER_TOOLS",
+      "summary": "Convert a temperature between celsius and fahrenheit.",
+      "authority": "model",
+      "sourceRefs": [
+        {
+          "file": "src/tools.ts",
+          "startLine": 13,
+          "endLine": 21,
+          "role": "code",
+          "snippet": "{"
+        }
+      ],
+      "evidence": [
+        {
+          "basis": "static",
+          "method": "ast:tool-definition",
+          "claim": "tool definition object with name 'convert_units'"
+        }
+      ],
+      "assurance": {
+        "basis": "static"
+      },
+      "uncertainties": [],
+      "attrs": {
+        "name": "convert_units",
+        "description": "Convert a temperature between celsius and fahrenheit.",
+        "schema": "{ name: \"convert_units\", description: \"Convert a temperature between celsius and fahrenheit.\", input_schema: { type: \"object\", properties: { value: { type: \"number\" }, to: { enum: [\"C\", \"F\"] } }, required: [\"value\", \"to\"], }, }",
+        "entryIds": [
+          "junction:src/tools.ts#runTool/2"
+        ],
+        "exitIds": []
+      }
+    },
+    {
+      "id": "agent:src/agent.ts#runWeatherAgent",
+      "kind": "Agent",
+      "label": "agent runWeatherAgent",
+      "parent": "harness",
+      "summary": "Function containing a loop that calls a model (agent loop).",
+      "sourceRefs": [
+        {
+          "file": "src/agent.ts",
+          "startLine": 12,
+          "endLine": 38,
+          "symbol": "runWeatherAgent",
+          "role": "code",
+          "snippet": "export async function runWeatherAgent(question: string): Promise<string> {"
+        }
+      ],
+      "evidence": [
+        {
+          "basis": "static",
+          "method": "ast:function",
+          "claim": "loop containing a model call"
+        }
+      ],
+      "assurance": {
+        "basis": "static"
+      },
+      "uncertainties": [],
+      "attrs": {
+        "role": "agent",
+        "fn": "src/agent.ts#runWeatherAgent",
+        "exported": true,
+        "entryIds": [
+          "junction:loop:src/agent.ts#runWeatherAgent/0",
+          "junction:loop:src/agent.ts#runWeatherAgent/1"
+        ],
+        "exitIds": [
+          "termination:src/agent.ts#runWeatherAgent/0",
+          "termination:src/agent.ts#runWeatherAgent/1"
+        ],
+        "modelCalls": [
+          "modelcall:src/agent.ts#runWeatherAgent/0"
+        ],
+        "terminations": [
+          "termination:src/agent.ts#runWeatherAgent/0",
+          "termination:src/agent.ts#runWeatherAgent/1"
+        ]
+      }
+    },
+    {
+      "id": "proc:src/tools.ts#runTool",
+      "kind": "Procedure",
+      "label": "runTool()",
+      "parent": "harness",
+      "summary": "Procedure on a path to model calls, effects or state.",
+      "sourceRefs": [
+        {
+          "file": "src/tools.ts",
+          "startLine": 24,
+          "endLine": 42,
+          "symbol": "runTool",
+          "role": "code",
+          "snippet": "export async function runTool(name: string, input: any): Promise<string> {"
+        }
+      ],
+      "evidence": [
+        {
+          "basis": "static",
+          "method": "ast:function",
+          "claim": "function classified as procedure"
+        }
+      ],
+      "assurance": {
+        "basis": "static"
+      },
+      "uncertainties": [],
+      "attrs": {
+        "role": "procedure",
+        "fn": "src/tools.ts#runTool",
+        "exported": true,
+        "entryIds": [
+          "toolrequest:src/tools.ts#runTool/0"
+        ],
+        "exitIds": [
+          "junction:src/tools.ts#runTool/0",
+          "junction:src/tools.ts#runTool/1",
+          "junction:src/tools.ts#runTool/2",
+          "junction:src/tools.ts#runTool/3",
+          "toolrequest:src/tools.ts#runTool/0"
+        ]
+      }
+    },
+    {
+      "id": "loop:src/agent.ts#runWeatherAgent/0",
+      "kind": "Loop",
+      "label": "agent loop (turn < MAX_TURNS)",
+      "parent": "agent:src/agent.ts#runWeatherAgent",
+      "summary": "Agent loop: each iteration calls a model and acts on its output.",
+      "authority": "code",
+      "sourceRefs": [
+        {
+          "file": "src/agent.ts",
+          "startLine": 15,
+          "endLine": 36,
+          "symbol": "runWeatherAgent",
+          "role": "code",
+          "snippet": "for (let turn = 0; turn < MAX_TURNS; turn++) {"
+        }
+      ],
+      "evidence": [
+        {
+          "basis": "static",
+          "method": "ast:loop",
+          "claim": "ForStatement containing a model call"
+        }
+      ],
+      "assurance": {
+        "basis": "static"
+      },
+      "uncertainties": [],
+      "attrs": {
+        "loopType": "agent",
+        "condition": "turn < MAX_TURNS",
+        "infinite": false,
+        "constants": {
+          "MAX_TURNS": 6
+        },
+        "counter": "turn",
+        "entryIds": [
+          "junction:loop:src/agent.ts#runWeatherAgent/1"
+        ],
+        "exitIds": [
+          "junction:loop:src/agent.ts#runWeatherAgent/0"
+        ]
+      }
+    },
+    {
+      "id": "junction:loop:src/agent.ts#runWeatherAgent/0",
+      "kind": "Junction",
+      "label": "loop head: turn < MAX_TURNS",
+      "parent": "loop:src/agent.ts#runWeatherAgent/0",
+      "authority": "code",
+      "sourceRefs": [
+        {
+          "file": "src/agent.ts",
+          "startLine": 15,
+          "endLine": 15,
+          "symbol": "runWeatherAgent",
+          "role": "code",
+          "snippet": "turn < MAX_TURNS"
+        }
+      ],
+      "evidence": [
+        {
+          "basis": "static",
+          "method": "cfg:loop-head",
+          "claim": "control location at the start of each iteration"
+        }
+      ],
+      "assurance": {
+        "basis": "static"
+      },
+      "uncertainties": [],
+      "attrs": {
+        "role": "loop-head",
+        "condition": "turn < MAX_TURNS",
+        "constants": {
+          "MAX_TURNS": 6
+        }
+      }
+    },
+    {
+      "id": "modelcall:src/agent.ts#runWeatherAgent/0",
+      "kind": "ModelCall",
+      "label": "model call anthropic messages.create",
+      "parent": "loop:src/agent.ts#runWeatherAgent/0",
+      "summary": "LLM invocation. Output is nondeterministic; downstream handling is listed in outputHandling.",
+      "authority": "model",
+      "sourceRefs": [
+        {
+          "file": "src/agent.ts",
+          "startLine": 16,
+          "endLine": 22,
+          "symbol": "runWeatherAgent",
+          "role": "code",
+          "snippet": "client.messages.create({"
+        }
+      ],
+      "evidence": [
+        {
+          "basis": "static",
+          "method": "catalog:model-api",
+          "claim": "callee resolves to anthropic.messages.create",
+          "ref": {
+            "file": "src/agent.ts",
+            "startLine": 16,
+            "endLine": 22,
+            "role": "code",
+            "snippet": "client.messages.create({"
+          }
+        }
+      ],
+      "assurance": {
+        "basis": "static"
+      },
+      "uncertainties": [],
+      "attrs": {
+        "provider": "anthropic",
+        "api": "messages.create",
+        "model": "claude-sonnet-4-5",
+        "context": [
+          {
+            "order": 0,
+            "slot": "system",
+            "kind": "prompt",
+            "expr": "SYSTEM_PROMPT",
+            "ref": "prompt:src/agent.ts#SYSTEM_PROMPT",
+            "transforms": [],
+            "certainty": "resolved"
+          },
+          {
+            "order": 1,
+            "slot": "messages",
+            "kind": "conversation",
+            "expr": "messages",
+            "ref": "state:src/agent.ts#runWeatherAgent/messages",
+            "transforms": [],
+            "certainty": "resolved"
+          },
+          {
+            "order": 2,
+            "slot": "messages",
+            "kind": "input",
+            "expr": "question (input to entry point runWeatherAgent())",
+            "transforms": [
+              "initial conversation seed",
+              "role=user"
+            ],
+            "certainty": "resolved"
+          },
+          {
+            "order": 3,
+            "slot": "tools",
+            "kind": "tool-definitions",
+            "expr": "WEATHER_TOOLS",
+            "transforms": [],
+            "certainty": "resolved"
+          }
+        ],
+        "toolsOffered": [
+          "get_weather",
+          "convert_units"
+        ],
+        "outputHandling": [
+          {
+            "nodeId": "decision:src/agent.ts#runWeatherAgent/0",
+            "condition": "response.stop_reason === \"end_turn\""
+          },
+          {
+            "nodeId": "decision:src/agent.ts#runWeatherAgent/1",
+            "condition": "block.type !== \"tool_use\""
+          },
+          {
+            "nodeId": "toolrequest:src/tools.ts#runTool/0",
+            "condition": "dispatch switch(name)"
+          }
+        ]
+      }
+    },
+    {
+      "id": "memorywrite:src/agent.ts#runWeatherAgent/0",
+      "kind": "MemoryWrite",
+      "label": "append to messages",
+      "parent": "loop:src/agent.ts#runWeatherAgent/0",
+      "summary": "Appends to the in-process conversation history (enters later model calls).",
+      "authority": "code",
+      "sourceRefs": [
+        {
+          "file": "src/agent.ts",
+          "startLine": 23,
+          "endLine": 23,
+          "symbol": "runWeatherAgent",
+          "role": "code",
+          "snippet": "messages.push({ role: \"assistant\", content: response.content })"
+        }
+      ],
+      "evidence": [
+        {
+          "basis": "static",
+          "method": "ast:array-push",
+          "claim": "push() on a variable passed as messages to a model call"
+        }
+      ],
+      "assurance": {
+        "basis": "static"
+      },
+      "uncertainties": [],
+      "attrs": {
+        "store": "state:src/agent.ts#runWeatherAgent/messages",
+        "op": "append",
+        "content": "assistant: response.content (model output)"
+      }
+    },
+    {
+      "id": "decision:src/agent.ts#runWeatherAgent/0",
+      "kind": "Decision",
+      "label": "model-determined: response.stop_reason === \"end_turn\"",
+      "parent": "loop:src/agent.ts#runWeatherAgent/0",
+      "summary": "Branch selected by model output (the condition compares model output against fixed options).",
+      "authority": "model",
+      "sourceRefs": [
+        {
+          "file": "src/agent.ts",
+          "startLine": 25,
+          "endLine": 25,
+          "symbol": "runWeatherAgent",
+          "role": "code",
+          "snippet": "response.stop_reason === \"end_turn\""
+        }
+      ],
+      "evidence": [
+        {
+          "basis": "static",
+          "method": "dataflow:taint",
+          "claim": "condition depends on model:modelcall:src/agent.ts#runWeatherAgent/0"
+        }
+      ],
+      "assurance": {
+        "basis": "static"
+      },
+      "uncertainties": [],
+      "attrs": {
+        "condition": "response.stop_reason === \"end_turn\"",
+        "outcomeText": "",
+        "constants": {},
+        "taintSources": [
+          "model:modelcall:src/agent.ts#runWeatherAgent/0"
+        ],
+        "validatesModelInput": false
+      }
+    },
+    {
+      "id": "termination:src/agent.ts#runWeatherAgent/0",
+      "kind": "Termination",
+      "label": "return: response.content.map((b: any) => (b.typ…",
+      "parent": "loop:src/agent.ts#runWeatherAgent/0",
+      "authority": "code",
+      "sourceRefs": [
+        {
+          "file": "src/agent.ts",
+          "startLine": 26,
+          "endLine": 26,
+          "symbol": "runWeatherAgent",
+          "role": "code",
+          "snippet": "return response.content.map((b: any) => (b.type === \"text\" ? b.text : \"\")).join(\"\");"
+        }
+      ],
+      "evidence": [
+        {
+          "basis": "static",
+          "method": "cfg:projection",
+          "claim": "Termination at return response.content.map((b: any) =>…"
+        }
+      ],
+      "assurance": {
+        "basis": "static"
+      },
+      "uncertainties": [],
+      "attrs": {
+        "reason": "response.content.map((b: any) => (b.typ…",
+        "kind": "return",
+        "expr": "response.content.map((b: any) => (b.type === \"text\" ? b.text : \"\")).join(\"\")"
+      }
+    },
+    {
+      "id": "loop:src/agent.ts#runWeatherAgent/1",
+      "kind": "Loop",
+      "label": "iteration loop (const block of response.content)",
+      "parent": "loop:src/agent.ts#runWeatherAgent/0",
+      "summary": "Iteration over a collection.",
+      "authority": "code",
+      "sourceRefs": [
+        {
+          "file": "src/agent.ts",
+          "startLine": 30,
+          "endLine": 34,
+          "symbol": "runWeatherAgent",
+          "role": "code",
+          "snippet": "for (const block of response.content) {"
+        }
+      ],
+      "evidence": [
+        {
+          "basis": "static",
+          "method": "ast:loop",
+          "claim": "ForOfStatement containing interesting operations"
+        }
+      ],
+      "assurance": {
+        "basis": "static"
+      },
+      "uncertainties": [],
+      "attrs": {
+        "loopType": "iteration",
+        "condition": "const block of response.content",
+        "infinite": false,
+        "constants": {},
+        "entryIds": [
+          "junction:loop:src/agent.ts#runWeatherAgent/1"
+        ],
+        "exitIds": [
+          "junction:loop:src/agent.ts#runWeatherAgent/1"
+        ]
+      }
+    },
+    {
+      "id": "junction:loop:src/agent.ts#runWeatherAgent/1",
+      "kind": "Junction",
+      "label": "loop head: const block of response.content",
+      "parent": "loop:src/agent.ts#runWeatherAgent/1",
+      "authority": "code",
+      "sourceRefs": [
+        {
+          "file": "src/agent.ts",
+          "startLine": 30,
+          "endLine": 30,
+          "symbol": "runWeatherAgent",
+          "role": "code",
+          "snippet": "response.content"
+        }
+      ],
+      "evidence": [
+        {
+          "basis": "static",
+          "method": "cfg:loop-head",
+          "claim": "control location at the start of each iteration"
+        }
+      ],
+      "assurance": {
+        "basis": "static"
+      },
+      "uncertainties": [],
+      "attrs": {
+        "role": "loop-head",
+        "condition": "const block of response.content",
+        "constants": {}
+      }
+    },
+    {
+      "id": "decision:src/agent.ts#runWeatherAgent/1",
+      "kind": "Decision",
+      "label": "model-determined: block.type !== \"tool_use\"",
+      "parent": "loop:src/agent.ts#runWeatherAgent/1",
+      "summary": "Branch selected by model output (the condition compares model output against fixed options).",
+      "authority": "model",
+      "sourceRefs": [
+        {
+          "file": "src/agent.ts",
+          "startLine": 31,
+          "endLine": 31,
+          "symbol": "runWeatherAgent",
+          "role": "code",
+          "snippet": "block.type !== \"tool_use\""
+        }
+      ],
+      "evidence": [
+        {
+          "basis": "static",
+          "method": "dataflow:taint",
+          "claim": "condition depends on model:modelcall:src/agent.ts#runWeatherAgent/0"
+        }
+      ],
+      "assurance": {
+        "basis": "static"
+      },
+      "uncertainties": [],
+      "attrs": {
+        "condition": "block.type !== \"tool_use\"",
+        "constants": {},
+        "taintSources": [
+          "model:modelcall:src/agent.ts#runWeatherAgent/0"
+        ],
+        "validatesModelInput": false
+      }
+    },
+    {
+      "id": "memorywrite:src/agent.ts#runWeatherAgent/1",
+      "kind": "MemoryWrite",
+      "label": "append to messages",
+      "parent": "loop:src/agent.ts#runWeatherAgent/0",
+      "summary": "Appends to the in-process conversation history (enters later model calls).",
+      "authority": "code",
+      "sourceRefs": [
+        {
+          "file": "src/agent.ts",
+          "startLine": 35,
+          "endLine": 35,
+          "symbol": "runWeatherAgent",
+          "role": "code",
+          "snippet": "messages.push({ role: \"user\", content: results })"
+        }
+      ],
+      "evidence": [
+        {
+          "basis": "static",
+          "method": "ast:array-push",
+          "claim": "push() on a variable passed as messages to a model call"
+        }
+      ],
+      "assurance": {
+        "basis": "static"
+      },
+      "uncertainties": [],
+      "attrs": {
+        "store": "state:src/agent.ts#runWeatherAgent/messages",
+        "op": "append",
+        "content": "user: results"
+      }
+    },
+    {
+      "id": "termination:src/agent.ts#runWeatherAgent/1",
+      "kind": "Termination",
+      "label": "return: Sorry, I could not finish within the turn budget.",
+      "parent": "agent:src/agent.ts#runWeatherAgent",
+      "authority": "code",
+      "sourceRefs": [
+        {
+          "file": "src/agent.ts",
+          "startLine": 37,
+          "endLine": 37,
+          "symbol": "runWeatherAgent",
+          "role": "code",
+          "snippet": "return \"Sorry, I could not finish within the turn budget.\";"
+        }
+      ],
+      "evidence": [
+        {
+          "basis": "static",
+          "method": "cfg:projection",
+          "claim": "Termination at return \"Sorry, I could not finish withi…"
+        }
+      ],
+      "assurance": {
+        "basis": "static"
+      },
+      "uncertainties": [],
+      "attrs": {
+        "reason": "Sorry, I could not finish within the turn budget.",
+        "kind": "return",
+        "expr": "\"Sorry, I could not finish within the turn budget.\""
+      }
+    },
+    {
+      "id": "toolrequest:src/tools.ts#runTool/0",
+      "kind": "ToolRequest",
+      "label": "dispatch switch(name)",
+      "parent": "proc:src/tools.ts#runTool",
+      "summary": "The model chooses which case runs by naming a tool. Each case is the tool's inline handler.",
+      "authority": "model",
+      "sourceRefs": [
+        {
+          "file": "src/tools.ts",
+          "startLine": 25,
+          "endLine": 25,
+          "symbol": "runTool",
+          "role": "code",
+          "snippet": "name"
+        }
+      ],
+      "evidence": [
+        {
+          "basis": "static",
+          "method": "dataflow:taint",
+          "claim": "switch over a model-derived tool name"
+        }
+      ],
+      "assurance": {
+        "basis": "static"
+      },
+      "uncertainties": [],
+      "attrs": {
+        "selector": "name",
+        "mechanism": "switch",
+        "candidates": [
+          "get_weather",
+          "convert_units"
+        ],
+        "taintSources": [
+          "model:modelcall:src/agent.ts#runWeatherAgent/0"
+        ],
+        "modelSelected": true,
+        "gatedBy": [],
+        "routes": [
+          {
+            "via": [
+              "runWeatherAgent",
+              "runTool"
+            ],
+            "gates": []
+          }
+        ],
+        "ungatedRoute": true
+      }
+    },
+    {
+      "id": "guard:src/tools.ts#runTool/0",
+      "kind": "Guard",
+      "label": "guard: typeof input.city !== \"string\" || input.city.length > 80",
+      "parent": "tool:src/tools.ts#WEATHER_TOOLS.get_weather",
+      "summary": "Code-enforced input-validation check. If the condition holds, the return path rejects.",
+      "authority": "code",
+      "sourceRefs": [
+        {
+          "file": "src/tools.ts",
+          "startLine": 27,
+          "endLine": 27,
+          "symbol": "runTool",
+          "role": "code",
+          "snippet": "typeof input.city !== \"string\" || input.city.length > 80"
+        }
+      ],
+      "evidence": [
+        {
+          "basis": "static",
+          "method": "cfg:rejecting-branch",
+          "claim": "branch returns without reaching interesting operations"
+        },
+        {
+          "basis": "static",
+          "method": "heuristic:purpose",
+          "claim": "purpose classified as input-validation"
+        }
+      ],
+      "assurance": {
+        "basis": "static",
+        "enforcement": "enforced"
+      },
+      "uncertainties": [],
+      "attrs": {
+        "condition": "typeof input.city !== \"string\" || input.city.length > 80",
+        "purpose": "input-validation",
+        "rejectText": "error: invalid city",
+        "rejectExit": "return",
+        "constants": {},
+        "taintSources": [
+          "model:modelcall:src/agent.ts#runWeatherAgent/0"
+        ],
+        "validatesModelInput": true
+      }
+    },
+    {
+      "id": "junction:src/tools.ts#runTool/0",
+      "kind": "Junction",
+      "label": "return \"error: invalid city\"",
+      "parent": "tool:src/tools.ts#WEATHER_TOOLS.get_weather",
+      "authority": "code",
+      "sourceRefs": [
+        {
+          "file": "src/tools.ts",
+          "startLine": 28,
+          "endLine": 28,
+          "symbol": "runTool",
+          "role": "code",
+          "snippet": "return \"error: invalid city\";"
+        }
+      ],
+      "evidence": [
+        {
+          "basis": "static",
+          "method": "cfg:projection",
+          "claim": "Junction at return \"error: invalid city\";"
+        }
+      ],
+      "assurance": {
+        "basis": "static"
+      },
+      "uncertainties": [],
+      "attrs": {
+        "role": "exit",
+        "exit": "return"
+      }
+    },
+    {
+      "id": "effect:src/tools.ts#runTool/0",
+      "kind": "Effect",
+      "label": "fetch(`https://api.weather.example/…)",
+      "parent": "tool:src/tools.ts#WEATHER_TOOLS.get_weather",
+      "summary": "Side effect (network).",
+      "authority": "code",
+      "sourceRefs": [
+        {
+          "file": "src/tools.ts",
+          "startLine": 30,
+          "endLine": 32,
+          "symbol": "runTool",
+          "role": "code",
+          "snippet": "fetch("
+        }
+      ],
+      "evidence": [
+        {
+          "basis": "static",
+          "method": "catalog:effect-api",
+          "claim": "callee resolves to fetch"
+        }
+      ],
+      "assurance": {
+        "basis": "static"
+      },
+      "uncertainties": [],
+      "attrs": {
+        "category": "network",
+        "irreversible": "unknown",
+        "api": "fetch",
+        "target": "api.weather.example",
+        "args": [
+          "`https://api.weather.example/v1/current?city=${encodeURICom…"
+        ],
+        "modelControlledArgs": [
+          "`https://api.weather.example/v1/current?city=${en…"
+        ],
+        "gatedBy": [
+          "guard:src/tools.ts#runTool/0"
+        ],
+        "dependsOnModel": true,
+        "routes": [
+          {
+            "via": [
+              "runWeatherAgent",
+              "runTool"
+            ],
+            "gates": [
+              "guard:src/tools.ts#runTool/0"
+            ]
+          }
+        ],
+        "ungatedRoute": false
+      }
+    },
+    {
+      "id": "junction:src/tools.ts#runTool/1",
+      "kind": "Junction",
+      "label": "return await res.text()",
+      "parent": "tool:src/tools.ts#WEATHER_TOOLS.get_weather",
+      "authority": "code",
+      "sourceRefs": [
+        {
+          "file": "src/tools.ts",
+          "startLine": 33,
+          "endLine": 33,
+          "symbol": "runTool",
+          "role": "code",
+          "snippet": "return await res.text();"
+        }
+      ],
+      "evidence": [
+        {
+          "basis": "static",
+          "method": "cfg:projection",
+          "claim": "Junction at return await res.text();"
+        }
+      ],
+      "assurance": {
+        "basis": "static"
+      },
+      "uncertainties": [],
+      "attrs": {
+        "role": "exit",
+        "exit": "return"
+      }
+    },
+    {
+      "id": "junction:src/tools.ts#runTool/2",
+      "kind": "Junction",
+      "label": "return input.to === \"F\" ? String((v * 9) / 5 + 32) : Str…",
+      "parent": "tool:src/tools.ts#WEATHER_TOOLS.convert_units",
+      "authority": "code",
+      "sourceRefs": [
+        {
+          "file": "src/tools.ts",
+          "startLine": 37,
+          "endLine": 37,
+          "symbol": "runTool",
+          "role": "code",
+          "snippet": "return input.to === \"F\" ? String((v * 9) / 5 + 32) : String(((v - 32) * 5) / 9);"
+        }
+      ],
+      "evidence": [
+        {
+          "basis": "static",
+          "method": "cfg:projection",
+          "claim": "Junction at return input.to === \"F\" ? String((v * 9…"
+        }
+      ],
+      "assurance": {
+        "basis": "static"
+      },
+      "uncertainties": [],
+      "attrs": {
+        "role": "exit",
+        "exit": "return"
+      }
+    },
+    {
+      "id": "junction:src/tools.ts#runTool/3",
+      "kind": "Junction",
+      "label": "return `error: unknown tool ${name}`",
+      "parent": "proc:src/tools.ts#runTool",
+      "authority": "code",
+      "sourceRefs": [
+        {
+          "file": "src/tools.ts",
+          "startLine": 40,
+          "endLine": 40,
+          "symbol": "runTool",
+          "role": "code",
+          "snippet": "return `error: unknown tool ${name}`;"
+        }
+      ],
+      "evidence": [
+        {
+          "basis": "static",
+          "method": "cfg:projection",
+          "claim": "Junction at return `error: unknown tool ${name}`;"
+        }
+      ],
+      "assurance": {
+        "basis": "static"
+      },
+      "uncertainties": [],
+      "attrs": {
+        "role": "exit",
+        "exit": "return"
+      }
+    },
+    {
+      "id": "prompt:src/agent.ts#SYSTEM_PROMPT",
+      "kind": "Prompt",
+      "label": "prompt SYSTEM_PROMPT",
+      "parent": "harness",
+      "summary": "Prompt text. Instructions in it are advisory to the model; they are not enforced by code.",
+      "sourceRefs": [
+        {
+          "file": "src/agent.ts",
+          "startLine": 8,
+          "endLine": 10,
+          "symbol": "SYSTEM_PROMPT",
+          "role": "prompt",
+          "snippet": "`You are a concise weather assistant."
+        }
+      ],
+      "evidence": [
+        {
+          "basis": "static",
+          "method": "ast:string-literal",
+          "claim": "prompt text is a literal in source"
+        }
+      ],
+      "assurance": {
+        "basis": "static",
+        "enforcement": "advisory"
+      },
+      "uncertainties": [],
+      "attrs": {
+        "origin": "const",
+        "text": "You are a concise weather assistant.\nUse the get_weather tool to look up current conditions; never invent temperatures.\nOnly answer questions about weather. Always state the unit you are using.",
+        "chars": 193,
+        "startLine": 8,
+        "file": "src/agent.ts",
+        "hasInterpolation": false
+      }
+    },
+    {
+      "id": "event:entry:src/agent.ts#runWeatherAgent",
+      "kind": "ExternalEvent",
+      "label": "entry runWeatherAgent(question)",
+      "parent": "harness",
+      "summary": "Entry point: exported function not called by analysed code; invoked by an external caller.",
+      "authority": "external",
+      "sourceRefs": [
+        {
+          "file": "src/agent.ts",
+          "startLine": 12,
+          "endLine": 38,
+          "symbol": "runWeatherAgent",
+          "role": "code",
+          "snippet": "export async function runWeatherAgent(question: string): Promise<string> {"
+        }
+      ],
+      "evidence": [
+        {
+          "basis": "static",
+          "method": "callgraph:no-callers",
+          "claim": "exported and not called by analysed code"
+        }
+      ],
+      "assurance": {
+        "basis": "static"
+      },
+      "uncertainties": [],
+      "attrs": {
+        "trigger": "entry",
+        "fn": "src/agent.ts#runWeatherAgent"
+      }
+    },
+    {
+      "id": "rule:src/agent.ts#SYSTEM_PROMPT/0",
+      "kind": "PromptRule",
+      "label": "Use the get_weather tool to look up current conditions; never invent …",
+      "parent": "prompt:src/agent.ts#SYSTEM_PROMPT",
+      "summary": "Advisory instruction. No code guard with matching terms was found — treat as NOT enforced.",
+      "authority": "model",
+      "sourceRefs": [
+        {
+          "file": "src/agent.ts",
+          "startLine": 9,
+          "endLine": 9,
+          "role": "prompt",
+          "snippet": "Use the get_weather tool to look up current conditions; never invent temperatures."
+        }
+      ],
+      "evidence": [
+        {
+          "basis": "static",
+          "method": "text:rule-pattern",
+          "claim": "sentence in prompt matches an instruction pattern (prohibition)"
+        }
+      ],
+      "assurance": {
+        "basis": "static",
+        "enforcement": "advisory"
+      },
+      "uncertainties": [
+        "No matching code guard found. Absence of a match is not proof that no enforcement exists elsewhere."
+      ],
+      "attrs": {
+        "text": "Use the get_weather tool to look up current conditions; never invent temperatures.",
+        "polarity": "prohibition",
+        "status": "prompt-only",
+        "matchedGuards": [],
+        "mismatches": [],
+        "relatedTools": [
+          "tool:src/tools.ts#WEATHER_TOOLS.get_weather"
+        ],
+        "file": "src/agent.ts",
+        "line": 9
+      }
+    },
+    {
+      "id": "rule:src/agent.ts#SYSTEM_PROMPT/1",
+      "kind": "PromptRule",
+      "label": "Only answer questions about weather.",
+      "parent": "prompt:src/agent.ts#SYSTEM_PROMPT",
+      "summary": "Advisory instruction. No code guard with matching terms was found — treat as NOT enforced.",
+      "authority": "model",
+      "sourceRefs": [
+        {
+          "file": "src/agent.ts",
+          "startLine": 10,
+          "endLine": 10,
+          "role": "prompt",
+          "snippet": "Only answer questions about weather."
+        }
+      ],
+      "evidence": [
+        {
+          "basis": "static",
+          "method": "text:rule-pattern",
+          "claim": "sentence in prompt matches an instruction pattern (restriction)"
+        }
+      ],
+      "assurance": {
+        "basis": "static",
+        "enforcement": "advisory"
+      },
+      "uncertainties": [
+        "No matching code guard found. Absence of a match is not proof that no enforcement exists elsewhere."
+      ],
+      "attrs": {
+        "text": "Only answer questions about weather.",
+        "polarity": "restriction",
+        "status": "prompt-only",
+        "matchedGuards": [],
+        "mismatches": [],
+        "relatedTools": [
+          "tool:src/tools.ts#WEATHER_TOOLS.get_weather"
+        ],
+        "file": "src/agent.ts",
+        "line": 10
+      }
+    },
+    {
+      "id": "rule:src/agent.ts#SYSTEM_PROMPT/2",
+      "kind": "PromptRule",
+      "label": "Always state the unit you are using.",
+      "parent": "prompt:src/agent.ts#SYSTEM_PROMPT",
+      "summary": "Advisory instruction. No code guard with matching terms was found — treat as NOT enforced.",
+      "authority": "model",
+      "sourceRefs": [
+        {
+          "file": "src/agent.ts",
+          "startLine": 10,
+          "endLine": 10,
+          "role": "prompt",
+          "snippet": "Always state the unit you are using."
+        }
+      ],
+      "evidence": [
+        {
+          "basis": "static",
+          "method": "text:rule-pattern",
+          "claim": "sentence in prompt matches an instruction pattern (obligation)"
+        }
+      ],
+      "assurance": {
+        "basis": "static",
+        "enforcement": "advisory"
+      },
+      "uncertainties": [
+        "No matching code guard found. Absence of a match is not proof that no enforcement exists elsewhere."
+      ],
+      "attrs": {
+        "text": "Always state the unit you are using.",
+        "polarity": "obligation",
+        "status": "prompt-only",
+        "matchedGuards": [],
+        "mismatches": [],
+        "relatedTools": [
+          "tool:src/tools.ts#WEATHER_TOOLS.convert_units"
+        ],
+        "file": "src/agent.ts",
+        "line": 10
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "transition:junction:loop:src/agent.ts#runWeatherAgent/0->modelcall:src/agent.ts#runWeatherAgent/0#iterate while turn < MAX_TURNS",
+      "kind": "transition",
+      "from": "junction:loop:src/agent.ts#runWeatherAgent/0",
+      "to": "modelcall:src/agent.ts#runWeatherAgent/0",
+      "label": "iterate while turn < MAX_TURNS",
+      "evidence": [
+        {
+          "basis": "static",
+          "method": "cfg:projection",
+          "claim": "possible static succession"
+        }
+      ],
+      "attrs": {}
+    },
+    {
+      "id": "transition:modelcall:src/agent.ts#runWeatherAgent/0->memorywrite:src/agent.ts#runWeatherAgent/0",
+      "kind": "transition",
+      "from": "modelcall:src/agent.ts#runWeatherAgent/0",
+      "to": "memorywrite:src/agent.ts#runWeatherAgent/0",
+      "evidence": [
+        {
+          "basis": "static",
+          "method": "cfg:projection",
+          "claim": "possible static succession"
+        }
+      ],
+      "attrs": {}
+    },
+    {
+      "id": "transition:memorywrite:src/agent.ts#runWeatherAgent/0->decision:src/agent.ts#runWeatherAgent/0",
+      "kind": "transition",
+      "from": "memorywrite:src/agent.ts#runWeatherAgent/0",
+      "to": "decision:src/agent.ts#runWeatherAgent/0",
+      "evidence": [
+        {
+          "basis": "static",
+          "method": "cfg:projection",
+          "claim": "possible static succession"
+        }
+      ],
+      "attrs": {}
+    },
+    {
+      "id": "transition:decision:src/agent.ts#runWeatherAgent/0->termination:src/agent.ts#runWeatherAgent/0#if response.stop_reason === \"end_turn\"",
+      "kind": "transition",
+      "from": "decision:src/agent.ts#runWeatherAgent/0",
+      "to": "termination:src/agent.ts#runWeatherAgent/0",
+      "label": "if response.stop_reason === \"end_turn\"",
+      "evidence": [
+        {
+          "basis": "static",
+          "method": "cfg:projection",
+          "claim": "possible static succession"
+        }
+      ],
+      "attrs": {}
+    },
+    {
+      "id": "transition:decision:src/agent.ts#runWeatherAgent/0->junction:loop:src/agent.ts#runWeatherAgent/1#else",
+      "kind": "transition",
+      "from": "decision:src/agent.ts#runWeatherAgent/0",
+      "to": "junction:loop:src/agent.ts#runWeatherAgent/1",
+      "label": "else",
+      "evidence": [
+        {
+          "basis": "static",
+          "method": "cfg:projection",
+          "claim": "possible static succession"
+        }
+      ],
+      "attrs": {}
+    },
+    {
+      "id": "transition:junction:loop:src/agent.ts#runWeatherAgent/1->decision:src/agent.ts#runWeatherAgent/1#iterate while const block of response.content",
+      "kind": "transition",
+      "from": "junction:loop:src/agent.ts#runWeatherAgent/1",
+      "to": "decision:src/agent.ts#runWeatherAgent/1",
+      "label": "iterate while const block of response.content",
+      "evidence": [
+        {
+          "basis": "static",
+          "method": "cfg:projection",
+          "claim": "possible static succession"
+        }
+      ],
+      "attrs": {}
+    },
+    {
+      "id": "transition:decision:src/agent.ts#runWeatherAgent/1->proc:src/tools.ts#runTool#else",
+      "kind": "transition",
+      "from": "decision:src/agent.ts#runWeatherAgent/1",
+      "to": "proc:src/tools.ts#runTool",
+      "label": "else",
+      "evidence": [
+        {
+          "basis": "static",
+          "method": "cfg:projection",
+          "claim": "possible static succession"
+        }
+      ],
+      "attrs": {}
+    },
+    {
+      "id": "invokes:agent:src/agent.ts#runWeatherAgent->proc:src/tools.ts#runTool",
+      "kind": "invokes",
+      "from": "agent:src/agent.ts#runWeatherAgent",
+      "to": "proc:src/tools.ts#runTool",
+      "evidence": [
+        {
+          "basis": "static",
+          "method": "checker:symbol",
+          "claim": "call at src/agent.ts:32"
+        }
+      ],
+      "attrs": {}
+    },
+    {
+      "id": "transition:proc:src/tools.ts#runTool->junction:loop:src/agent.ts#runWeatherAgent/1#next iteration",
+      "kind": "transition",
+      "from": "proc:src/tools.ts#runTool",
+      "to": "junction:loop:src/agent.ts#runWeatherAgent/1",
+      "label": "next iteration",
+      "evidence": [
+        {
+          "basis": "static",
+          "method": "cfg:projection",
+          "claim": "possible static succession"
+        }
+      ],
+      "attrs": {
+        "backEdge": true
+      }
+    },
+    {
+      "id": "transition:decision:src/agent.ts#runWeatherAgent/1->junction:loop:src/agent.ts#runWeatherAgent/1#next iteration",
+      "kind": "transition",
+      "from": "decision:src/agent.ts#runWeatherAgent/1",
+      "to": "junction:loop:src/agent.ts#runWeatherAgent/1",
+      "label": "next iteration",
+      "evidence": [
+        {
+          "basis": "static",
+          "method": "cfg:projection",
+          "claim": "possible static succession"
+        }
+      ],
+      "attrs": {
+        "backEdge": true
+      }
+    },
+    {
+      "id": "transition:junction:loop:src/agent.ts#runWeatherAgent/1->memorywrite:src/agent.ts#runWeatherAgent/1#exit: iteration complete",
+      "kind": "transition",
+      "from": "junction:loop:src/agent.ts#runWeatherAgent/1",
+      "to": "memorywrite:src/agent.ts#runWeatherAgent/1",
+      "label": "exit: iteration complete",
+      "evidence": [
+        {
+          "basis": "static",
+          "method": "cfg:projection",
+          "claim": "possible static succession"
+        }
+      ],
+      "attrs": {
+        "budget": {}
+      }
+    },
+    {
+      "id": "transition:memorywrite:src/agent.ts#runWeatherAgent/1->junction:loop:src/agent.ts#runWeatherAgent/0#next iteration",
+      "kind": "transition",
+      "from": "memorywrite:src/agent.ts#runWeatherAgent/1",
+      "to": "junction:loop:src/agent.ts#runWeatherAgent/0",
+      "label": "next iteration",
+      "evidence": [
+        {
+          "basis": "static",
+          "method": "cfg:projection",
+          "claim": "possible static succession"
+        }
+      ],
+      "attrs": {
+        "backEdge": true
+      }
+    },
+    {
+      "id": "transition:junction:loop:src/agent.ts#runWeatherAgent/0->termination:src/agent.ts#runWeatherAgent/1#exit: !(turn < MAX_TURNS)",
+      "kind": "transition",
+      "from": "junction:loop:src/agent.ts#runWeatherAgent/0",
+      "to": "termination:src/agent.ts#runWeatherAgent/1",
+      "label": "exit: !(turn < MAX_TURNS)",
+      "evidence": [
+        {
+          "basis": "static",
+          "method": "cfg:projection",
+          "claim": "possible static succession"
+        }
+      ],
+      "attrs": {
+        "budget": {
+          "MAX_TURNS": 6
+        }
+      }
+    },
+    {
+      "id": "dispatches:toolrequest:src/tools.ts#runTool/0->tool:src/tools.ts#WEATHER_TOOLS.get_weather#get_weather",
+      "kind": "dispatches",
+      "from": "toolrequest:src/tools.ts#runTool/0",
+      "to": "tool:src/tools.ts#WEATHER_TOOLS.get_weather",
+      "label": "get_weather",
+      "evidence": [
+        {
+          "basis": "static",
+          "method": "ast:switch-case",
+          "claim": "case for tool 'get_weather'"
+        }
+      ],
+      "attrs": {
+        "modelSelected": true
+      }
+    },
+    {
+      "id": "transition:toolrequest:src/tools.ts#runTool/0->guard:src/tools.ts#runTool/0#tool = get_weather",
+      "kind": "transition",
+      "from": "toolrequest:src/tools.ts#runTool/0",
+      "to": "guard:src/tools.ts#runTool/0",
+      "label": "tool = get_weather",
+      "evidence": [
+        {
+          "basis": "static",
+          "method": "cfg:projection",
+          "claim": "possible static succession"
+        }
+      ],
+      "attrs": {}
+    },
+    {
+      "id": "transition:guard:src/tools.ts#runTool/0->junction:src/tools.ts#runTool/0#reject: typeof input.city !== \"string\" || input.city.length > 80",
+      "kind": "transition",
+      "from": "guard:src/tools.ts#runTool/0",
+      "to": "junction:src/tools.ts#runTool/0",
+      "label": "reject: typeof input.city !== \"string\" || input.city.length > 80",
+      "evidence": [
+        {
+          "basis": "static",
+          "method": "cfg:projection",
+          "claim": "possible static succession"
+        }
+      ],
+      "attrs": {}
+    },
+    {
+      "id": "transition:guard:src/tools.ts#runTool/0->effect:src/tools.ts#runTool/0#pass",
+      "kind": "transition",
+      "from": "guard:src/tools.ts#runTool/0",
+      "to": "effect:src/tools.ts#runTool/0",
+      "label": "pass",
+      "evidence": [
+        {
+          "basis": "static",
+          "method": "cfg:projection",
+          "claim": "possible static succession"
+        }
+      ],
+      "attrs": {}
+    },
+    {
+      "id": "transition:effect:src/tools.ts#runTool/0->junction:src/tools.ts#runTool/1",
+      "kind": "transition",
+      "from": "effect:src/tools.ts#runTool/0",
+      "to": "junction:src/tools.ts#runTool/1",
+      "evidence": [
+        {
+          "basis": "static",
+          "method": "cfg:projection",
+          "claim": "possible static succession"
+        }
+      ],
+      "attrs": {}
+    },
+    {
+      "id": "dispatches:toolrequest:src/tools.ts#runTool/0->tool:src/tools.ts#WEATHER_TOOLS.convert_units#convert_units",
+      "kind": "dispatches",
+      "from": "toolrequest:src/tools.ts#runTool/0",
+      "to": "tool:src/tools.ts#WEATHER_TOOLS.convert_units",
+      "label": "convert_units",
+      "evidence": [
+        {
+          "basis": "static",
+          "method": "ast:switch-case",
+          "claim": "case for tool 'convert_units'"
+        }
+      ],
+      "attrs": {
+        "modelSelected": true
+      }
+    },
+    {
+      "id": "transition:toolrequest:src/tools.ts#runTool/0->junction:src/tools.ts#runTool/2#tool = convert_units",
+      "kind": "transition",
+      "from": "toolrequest:src/tools.ts#runTool/0",
+      "to": "junction:src/tools.ts#runTool/2",
+      "label": "tool = convert_units",
+      "evidence": [
+        {
+          "basis": "static",
+          "method": "cfg:projection",
+          "claim": "possible static succession"
+        }
+      ],
+      "attrs": {}
+    },
+    {
+      "id": "transition:toolrequest:src/tools.ts#runTool/0->junction:src/tools.ts#runTool/3#tool = default",
+      "kind": "transition",
+      "from": "toolrequest:src/tools.ts#runTool/0",
+      "to": "junction:src/tools.ts#runTool/3",
+      "label": "tool = default",
+      "evidence": [
+        {
+          "basis": "static",
+          "method": "cfg:projection",
+          "claim": "possible static succession"
+        }
+      ],
+      "attrs": {}
+    },
+    {
+      "id": "context:prompt:src/agent.ts#SYSTEM_PROMPT->modelcall:src/agent.ts#runWeatherAgent/0#system",
+      "kind": "context",
+      "from": "prompt:src/agent.ts#SYSTEM_PROMPT",
+      "to": "modelcall:src/agent.ts#runWeatherAgent/0",
+      "label": "system",
+      "evidence": [
+        {
+          "basis": "static",
+          "method": "dataflow:context-assembly",
+          "claim": "prompt enters 'system' via SYSTEM_PROMPT"
+        }
+      ],
+      "attrs": {
+        "slot": "system",
+        "transforms": [],
+        "certainty": "resolved"
+      }
+    },
+    {
+      "id": "context:state:src/agent.ts#runWeatherAgent/messages->modelcall:src/agent.ts#runWeatherAgent/0#messages",
+      "kind": "context",
+      "from": "state:src/agent.ts#runWeatherAgent/messages",
+      "to": "modelcall:src/agent.ts#runWeatherAgent/0",
+      "label": "messages",
+      "evidence": [
+        {
+          "basis": "static",
+          "method": "dataflow:context-assembly",
+          "claim": "conversation enters 'messages' via messages"
+        }
+      ],
+      "attrs": {
+        "slot": "messages",
+        "transforms": [],
+        "certainty": "resolved"
+      }
+    },
+    {
+      "id": "offers:toolset:src/tools.ts#WEATHER_TOOLS->modelcall:src/agent.ts#runWeatherAgent/0#tools",
+      "kind": "offers",
+      "from": "toolset:src/tools.ts#WEATHER_TOOLS",
+      "to": "modelcall:src/agent.ts#runWeatherAgent/0",
+      "label": "tools",
+      "evidence": [
+        {
+          "basis": "static",
+          "method": "dataflow:tools-slot",
+          "claim": "tool definitions passed in the 'tools' slot"
+        }
+      ],
+      "attrs": {}
+    },
+    {
+      "id": "writes:memorywrite:src/agent.ts#runWeatherAgent/0->state:src/agent.ts#runWeatherAgent/messages",
+      "kind": "writes",
+      "from": "memorywrite:src/agent.ts#runWeatherAgent/0",
+      "to": "state:src/agent.ts#runWeatherAgent/messages",
+      "evidence": [
+        {
+          "basis": "static",
+          "method": "catalog:state-api",
+          "claim": "write to store"
+        }
+      ],
+      "attrs": {}
+    },
+    {
+      "id": "writes:memorywrite:src/agent.ts#runWeatherAgent/1->state:src/agent.ts#runWeatherAgent/messages",
+      "kind": "writes",
+      "from": "memorywrite:src/agent.ts#runWeatherAgent/1",
+      "to": "state:src/agent.ts#runWeatherAgent/messages",
+      "evidence": [
+        {
+          "basis": "static",
+          "method": "catalog:state-api",
+          "claim": "write to store"
+        }
+      ],
+      "attrs": {}
+    },
+    {
+      "id": "transition:event:entry:src/agent.ts#runWeatherAgent->agent:src/agent.ts#runWeatherAgent#invoke",
+      "kind": "transition",
+      "from": "event:entry:src/agent.ts#runWeatherAgent",
+      "to": "agent:src/agent.ts#runWeatherAgent",
+      "label": "invoke",
+      "evidence": [
+        {
+          "basis": "static",
+          "method": "callgraph:entry",
+          "claim": "external invocation"
+        }
+      ],
+      "attrs": {}
+    },
+    {
+      "id": "gates:guard:src/tools.ts#runTool/0->effect:src/tools.ts#runTool/0#on every analysed route",
+      "kind": "gates",
+      "from": "guard:src/tools.ts#runTool/0",
+      "to": "effect:src/tools.ts#runTool/0",
+      "label": "on every analysed route",
+      "evidence": [
+        {
+          "basis": "static",
+          "method": "cfg:dominance",
+          "claim": "guard:src/tools.ts#runTool/0 dominates effect:src/tools.ts#runTool/0 on every analysed call route and has a branch that avoids it"
+        }
+      ],
+      "attrs": {
+        "allRoutes": true
+      }
+    },
+    {
+      "id": "corresponds:rule:src/agent.ts#SYSTEM_PROMPT/0->tool:src/tools.ts#WEATHER_TOOLS.get_weather#mentions tool",
+      "kind": "corresponds",
+      "from": "rule:src/agent.ts#SYSTEM_PROMPT/0",
+      "to": "tool:src/tools.ts#WEATHER_TOOLS.get_weather",
+      "label": "mentions tool",
+      "evidence": [
+        {
+          "basis": "inferred",
+          "method": "heuristic:keyword-overlap",
+          "claim": "shared terms: current, get, get_weather, weather"
+        }
+      ],
+      "attrs": {
+        "hits": [
+          "current",
+          "get",
+          "get_weather",
+          "weather"
+        ]
+      }
+    },
+    {
+      "id": "corresponds:rule:src/agent.ts#SYSTEM_PROMPT/1->tool:src/tools.ts#WEATHER_TOOLS.get_weather#mentions tool",
+      "kind": "corresponds",
+      "from": "rule:src/agent.ts#SYSTEM_PROMPT/1",
+      "to": "tool:src/tools.ts#WEATHER_TOOLS.get_weather",
+      "label": "mentions tool",
+      "evidence": [
+        {
+          "basis": "inferred",
+          "method": "heuristic:keyword-overlap",
+          "claim": "shared terms: weather"
+        }
+      ],
+      "attrs": {
+        "hits": [
+          "weather"
+        ]
+      }
+    },
+    {
+      "id": "corresponds:rule:src/agent.ts#SYSTEM_PROMPT/2->tool:src/tools.ts#WEATHER_TOOLS.convert_units#mentions tool",
+      "kind": "corresponds",
+      "from": "rule:src/agent.ts#SYSTEM_PROMPT/2",
+      "to": "tool:src/tools.ts#WEATHER_TOOLS.convert_units",
+      "label": "mentions tool",
+      "evidence": [
+        {
+          "basis": "inferred",
+          "method": "heuristic:keyword-overlap",
+          "claim": "shared terms: unit"
+        }
+      ],
+      "attrs": {
+        "hits": [
+          "unit"
+        ]
+      }
+    },
+    {
+      "id": "interprets:modelcall:src/agent.ts#runWeatherAgent/0->decision:src/agent.ts#runWeatherAgent/0#output read by",
+      "kind": "interprets",
+      "from": "modelcall:src/agent.ts#runWeatherAgent/0",
+      "to": "decision:src/agent.ts#runWeatherAgent/0",
+      "label": "output read by",
+      "evidence": [
+        {
+          "basis": "static",
+          "method": "dataflow:taint",
+          "claim": "condition is data-dependent on the output of modelcall:src/agent.ts#runWeatherAgent/0"
+        }
+      ],
+      "attrs": {}
+    },
+    {
+      "id": "interprets:modelcall:src/agent.ts#runWeatherAgent/0->decision:src/agent.ts#runWeatherAgent/1#output read by",
+      "kind": "interprets",
+      "from": "modelcall:src/agent.ts#runWeatherAgent/0",
+      "to": "decision:src/agent.ts#runWeatherAgent/1",
+      "label": "output read by",
+      "evidence": [
+        {
+          "basis": "static",
+          "method": "dataflow:taint",
+          "claim": "condition is data-dependent on the output of modelcall:src/agent.ts#runWeatherAgent/0"
+        }
+      ],
+      "attrs": {}
+    },
+    {
+      "id": "interprets:modelcall:src/agent.ts#runWeatherAgent/0->toolrequest:src/tools.ts#runTool/0#output read by",
+      "kind": "interprets",
+      "from": "modelcall:src/agent.ts#runWeatherAgent/0",
+      "to": "toolrequest:src/tools.ts#runTool/0",
+      "label": "output read by",
+      "evidence": [
+        {
+          "basis": "static",
+          "method": "dataflow:taint",
+          "claim": "condition is data-dependent on the output of modelcall:src/agent.ts#runWeatherAgent/0"
+        }
+      ],
+      "attrs": {}
+    }
+  ],
+  "coverage": {
+    "filesAnalyzed": [
+      {
+        "path": "src/agent.ts",
+        "sha256": "b52a8fbe6ae11d2c4a428cf065e7354a1baaafc36eac2183171ad0a5abf3b023",
+        "lines": 39
+      },
+      {
+        "path": "src/tools.ts",
+        "sha256": "ab7bde116ca0ad5cb31cdfb25a2ba865d5cb9b9bb20928b483a79af0b9e741d0",
+        "lines": 43
+      }
+    ],
+    "filesSkipped": [],
+    "callSites": {
+      "total": 13,
+      "byClass": {
+        "effect": 1,
+        "external-known": 2,
+        "internal": 1,
+        "model": 1,
+        "pure": 6,
+        "state-push": 2
+      }
+    },
+    "unresolved": [],
+    "unlinkedNodes": [],
+    "sourceLinkCoverage": {
+      "nodesWithSource": 30,
+      "nodes": 30,
+      "edgesWithEvidenceRef": 34,
+      "edges": 34
+    },
+    "gaps": [
+      "Module-initialisation code (top-level statements) is not part of the control graph; only used for value resolution.",
+      "Exceptions are modelled only for try/catch within a function; cross-function exception flow is approximated by 'throws' edges from call sites inside try blocks."
+    ]
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "id": "coding-agent",
+  "name": "Coding agent with reviewer subagent",
+  "description": "SYNTHETIC fixture. Coding agent with file/shell tools, permission modes, human approval, durable memory, history compaction, a reviewer subagent, output validation with retries and a dynamically loaded plugin tool.",
+  "synthetic": true,
+  "version": "1",
+  "include": ["src/**/*.ts", "prompts/*.md"]
+}

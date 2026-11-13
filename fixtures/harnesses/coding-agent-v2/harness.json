@@ -1,0 +1,12 @@
+{
+  "id": "coding-agent-v2",
+  "name": "Coding agent with reviewer subagent (v2)",
+  "description": "SYNTHETIC fixture. Version 2 of coding-agent after a controlled change: shell allowlist blocks `git push --force`, read_file refuses .env files, turn budget lowered to 25, and the system prompt gained a rule about tests.",
+  "synthetic": true,
+  "version": "2",
+  "include": [
+    "src/**/*.ts",
+    "prompts/*.md"
+  ],
+  "baseline": "coding-agent"
+}

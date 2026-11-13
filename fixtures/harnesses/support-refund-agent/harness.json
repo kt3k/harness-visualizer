@@ -1,0 +1,8 @@
+{
+  "id": "support-refund-agent",
+  "name": "Customer support router with refund agent",
+  "description": "SYNTHETIC fixture. A model-routed support desk: a classifier picks a route via a forced tool call, a refund agent loop can issue refunds (financial effect) behind a code threshold and an asynchronous manager-approval queue resumed by a webhook, and can e-mail customers.",
+  "synthetic": true,
+  "version": "1",
+  "include": ["src/**/*.ts"]
+}

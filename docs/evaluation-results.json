@@ -1,0 +1,461 @@
+{
+  "generatedBy": "scripts/evaluate.ts",
+  "overall": {
+    "extraction": {
+      "model_call": {
+        "precision": 1,
+        "recall": 1,
+        "tp": 10,
+        "fp": 0,
+        "fn": 0
+      },
+      "effect": {
+        "precision": 1,
+        "recall": 1,
+        "tp": 11,
+        "fp": 0,
+        "fn": 0
+      },
+      "state_access": {
+        "precision": 1,
+        "recall": 1,
+        "tp": 10,
+        "fp": 0,
+        "fn": 0
+      },
+      "check": {
+        "precision": 1,
+        "recall": 0.895,
+        "tp": 17,
+        "fp": 0,
+        "fn": 2
+      },
+      "model_branch": {
+        "precision": 0.933,
+        "recall": 1,
+        "tp": 14,
+        "fp": 1,
+        "fn": 0
+      },
+      "human_input": {
+        "precision": 1,
+        "recall": 1,
+        "tp": 2,
+        "fp": 0,
+        "fn": 0
+      },
+      "unknown": {
+        "precision": 1,
+        "recall": 1,
+        "tp": 2,
+        "fp": 0,
+        "fn": 0
+      }
+    },
+    "promptRuleClassificationAccuracy": {
+      "correct": 17,
+      "total": 19,
+      "ratio": 0.895
+    },
+    "note": "Synthetic fixtures labelled by the fixture author. Small sample; not evidence of performance on real harnesses."
+  },
+  "harnesses": {
+    "coding-agent": {
+      "extraction": {
+        "model_call": {
+          "precision": 1,
+          "recall": 1,
+          "tp": 3,
+          "fp": 0,
+          "fn": 0,
+          "misses": [],
+          "extras": []
+        },
+        "effect": {
+          "precision": 1,
+          "recall": 1,
+          "tp": 4,
+          "fp": 0,
+          "fn": 0,
+          "misses": [],
+          "extras": []
+        },
+        "state_access": {
+          "precision": 1,
+          "recall": 1,
+          "tp": 2,
+          "fp": 0,
+          "fn": 0,
+          "misses": [],
+          "extras": []
+        },
+        "check": {
+          "precision": 1,
+          "recall": 0.917,
+          "tp": 11,
+          "fp": 0,
+          "fn": 1,
+          "misses": [
+            "src/agent.ts:67"
+          ],
+          "extras": []
+        },
+        "model_branch": {
+          "precision": 0.833,
+          "recall": 1,
+          "tp": 5,
+          "fp": 1,
+          "fn": 0,
+          "misses": [],
+          "extras": [
+            "src/agent.ts:67 (decision:src/agent.ts#runCodingAgent/3)"
+          ]
+        },
+        "human_input": {
+          "precision": 1,
+          "recall": 1,
+          "tp": 1,
+          "fp": 0,
+          "fn": 0,
+          "misses": [],
+          "extras": []
+        },
+        "unknown": {
+          "precision": 1,
+          "recall": 1,
+          "tp": 2,
+          "fp": 0,
+          "fn": 0,
+          "misses": [],
+          "extras": []
+        }
+      },
+      "promptRules": [
+        {
+          "rule": "Never delete files outside",
+          "truth": "enforced",
+          "analyzer": "enforced",
+          "ok": true
+        },
+        {
+          "rule": "Ask the user before deleting",
+          "truth": "enforced",
+          "analyzer": "partial",
+          "ok": false
+        },
+        {
+          "rule": "Never run `git push --force`",
+          "truth": "partial",
+          "analyzer": "partial",
+          "ok": true
+        },
+        {
+          "rule": "Do not read secrets",
+          "truth": "not-enforced",
+          "analyzer": "not-enforced",
+          "ok": true
+        },
+        {
+          "rule": "Only use the shell",
+          "truth": "enforced",
+          "analyzer": "enforced",
+          "ok": true
+        },
+        {
+          "rule": "You can only read files",
+          "truth": "enforced",
+          "analyzer": "not-enforced",
+          "ok": false
+        },
+        {
+          "rule": "Never propose changes",
+          "truth": "not-enforced",
+          "analyzer": "not-enforced",
+          "ok": true
+        }
+      ],
+      "sourceLinkCoverage": {
+        "nodes": 1,
+        "edgesWithEvidence": 1
+      },
+      "traceMapping": {
+        "mapped": 174,
+        "total": 177,
+        "ratio": 0.983
+      },
+      "unresolved": 2,
+      "unknownNodes": 2,
+      "inferredNodes": 1,
+      "nodesWithInferredClaims": 15,
+      "nodes": 107,
+      "edges": 189,
+      "analysisMs": 618
+    },
+    "research-orchestrator": {
+      "extraction": {
+        "model_call": {
+          "precision": 1,
+          "recall": 1,
+          "tp": 3,
+          "fp": 0,
+          "fn": 0,
+          "misses": [],
+          "extras": []
+        },
+        "effect": {
+          "precision": 1,
+          "recall": 1,
+          "tp": 3,
+          "fp": 0,
+          "fn": 0,
+          "misses": [],
+          "extras": []
+        },
+        "check": {
+          "precision": 1,
+          "recall": 1,
+          "tp": 4,
+          "fp": 0,
+          "fn": 0,
+          "misses": [],
+          "extras": []
+        },
+        "model_branch": {
+          "precision": 1,
+          "recall": 1,
+          "tp": 2,
+          "fp": 0,
+          "fn": 0,
+          "misses": [],
+          "extras": []
+        }
+      },
+      "promptRules": [
+        {
+          "rule": "Write a report",
+          "truth": "not-enforced",
+          "analyzer": "not-enforced",
+          "ok": true
+        },
+        {
+          "rule": "Do not include claims",
+          "truth": "not-enforced",
+          "analyzer": "not-enforced",
+          "ok": true
+        },
+        {
+          "rule": "Only fetch pages",
+          "truth": "enforced",
+          "analyzer": "enforced",
+          "ok": true
+        },
+        {
+          "rule": "Never submit forms",
+          "truth": "not-enforced",
+          "analyzer": "not-enforced",
+          "ok": true
+        }
+      ],
+      "sourceLinkCoverage": {
+        "nodes": 1,
+        "edgesWithEvidence": 1
+      },
+      "traceMapping": {
+        "mapped": 51,
+        "total": 51,
+        "ratio": 1
+      },
+      "unresolved": 0,
+      "unknownNodes": 0,
+      "inferredNodes": 0,
+      "nodesWithInferredClaims": 5,
+      "nodes": 40,
+      "edges": 58,
+      "analysisMs": 271
+    },
+    "simple-tool-loop": {
+      "extraction": {
+        "model_call": {
+          "precision": 1,
+          "recall": 1,
+          "tp": 1,
+          "fp": 0,
+          "fn": 0,
+          "misses": [],
+          "extras": []
+        },
+        "effect": {
+          "precision": 1,
+          "recall": 1,
+          "tp": 1,
+          "fp": 0,
+          "fn": 0,
+          "misses": [],
+          "extras": []
+        },
+        "check": {
+          "precision": 1,
+          "recall": 1,
+          "tp": 1,
+          "fp": 0,
+          "fn": 0,
+          "misses": [],
+          "extras": []
+        },
+        "model_branch": {
+          "precision": 1,
+          "recall": 1,
+          "tp": 3,
+          "fp": 0,
+          "fn": 0,
+          "misses": [],
+          "extras": []
+        }
+      },
+      "promptRules": [
+        {
+          "rule": "Use the get_weather",
+          "truth": "not-enforced",
+          "analyzer": "not-enforced",
+          "ok": true
+        },
+        {
+          "rule": "Only answer questions",
+          "truth": "not-enforced",
+          "analyzer": "not-enforced",
+          "ok": true
+        },
+        {
+          "rule": "Always state the unit",
+          "truth": "not-enforced",
+          "analyzer": "not-enforced",
+          "ok": true
+        }
+      ],
+      "sourceLinkCoverage": {
+        "nodes": 1,
+        "edgesWithEvidence": 1
+      },
+      "traceMapping": {
+        "mapped": 61,
+        "total": 61,
+        "ratio": 1
+      },
+      "unresolved": 0,
+      "unknownNodes": 0,
+      "inferredNodes": 0,
+      "nodesWithInferredClaims": 0,
+      "nodes": 30,
+      "edges": 34,
+      "analysisMs": 199
+    },
+    "support-refund-agent": {
+      "extraction": {
+        "model_call": {
+          "precision": 1,
+          "recall": 1,
+          "tp": 3,
+          "fp": 0,
+          "fn": 0,
+          "misses": [],
+          "extras": []
+        },
+        "effect": {
+          "precision": 1,
+          "recall": 1,
+          "tp": 3,
+          "fp": 0,
+          "fn": 0,
+          "misses": [],
+          "extras": []
+        },
+        "state_access": {
+          "precision": 1,
+          "recall": 1,
+          "tp": 8,
+          "fp": 0,
+          "fn": 0,
+          "misses": [],
+          "extras": []
+        },
+        "check": {
+          "precision": 1,
+          "recall": 0.5,
+          "tp": 1,
+          "fp": 0,
+          "fn": 1,
+          "misses": [
+            "src/refund-agent.ts:41"
+          ],
+          "extras": []
+        },
+        "model_branch": {
+          "precision": 1,
+          "recall": 1,
+          "tp": 4,
+          "fp": 0,
+          "fn": 0,
+          "misses": [],
+          "extras": []
+        },
+        "human_input": {
+          "precision": 1,
+          "recall": 1,
+          "tp": 1,
+          "fp": 0,
+          "fn": 0,
+          "misses": [],
+          "extras": []
+        }
+      },
+      "promptRules": [
+        {
+          "rule": "Never refund more than $100",
+          "truth": "mismatch",
+          "analyzer": "mismatch",
+          "ok": true
+        },
+        {
+          "rule": "Never refund an order that is older",
+          "truth": "not-enforced",
+          "analyzer": "not-enforced",
+          "ok": true
+        },
+        {
+          "rule": "Do not promise refunds",
+          "truth": "not-enforced",
+          "analyzer": "not-enforced",
+          "ok": true
+        },
+        {
+          "rule": "Use \"refund\" only",
+          "truth": "not-enforced",
+          "analyzer": "not-enforced",
+          "ok": true
+        },
+        {
+          "rule": "Do not discuss orders",
+          "truth": "not-enforced",
+          "analyzer": "not-enforced",
+          "ok": true
+        }
+      ],
+      "sourceLinkCoverage": {
+        "nodes": 1,
+        "edgesWithEvidence": 1
+      },
+      "traceMapping": {
+        "mapped": 72,
+        "total": 72,
+        "ratio": 1
+      },
+      "unresolved": 0,
+      "unknownNodes": 0,
+      "inferredNodes": 2,
+      "nodesWithInferredClaims": 4,
+      "nodes": 61,
+      "edges": 83,
+      "analysisMs": 205
+    }
+  }
+}

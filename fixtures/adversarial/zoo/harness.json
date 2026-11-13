@@ -1,0 +1,2 @@
+{ "id": "adversarial-zoo", "name": "ADVERSARIAL: hard-to-analyze patterns", "synthetic": true, "include": ["src/**/*.ts"],
+  "description": "SYNTHETIC adversarial fixture: aliasing, non-literal handler maps, eval, uncatalogued packages, ungated destructive effects, secrets and PII in prompts, unbounded loop, class-based agent." }

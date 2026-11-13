@@ -1,0 +1,91 @@
+import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { Graph, type HL } from "../Graph";
+import type { Bundle } from "../data";
+import { LENSES, computeVisible, defaultExpanded, type LensId } from "../viewmodel";
+
+const expandedStore = new Map<string, Set<string>>();
+
+export function useLens(b: Bundle, lensId: LensId, focus?: string) {
+  const lens = LENSES[lensId];
+  const key = `${b.entry.id}|${lensId}`;
+  const [expanded, setExpanded] = useState<Set<string>>(() => expandedStore.get(key) ?? defaultExpanded(b.ir, b.idx, lens));
+  useEffect(() => {
+    setExpanded(expandedStore.get(key) ?? defaultExpanded(b.ir, b.idx, lens));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [key]);
+  // make sure the focused node is visible: expand its ancestors
+  useEffect(() => {
+    if (!focus || !b.idx.node(focus)) return;
+    const anc = b.idx.ancestors(focus).filter((a) => !expanded.has(a) && b.idx.node(a)?.kind !== "Harness");
+    const hiddenKind = [focus, ...b.idx.ancestors(focus)].some((a) => lens.hideKinds.includes(b.idx.node(a)!.kind));
+    if (anc.length && !hiddenKind) update(new Set([...expanded, ...anc]));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [focus, key]);
+  const update = (s: Set<string>) => {
+    expandedStore.set(key, s);
+    setExpanded(s);
+  };
+  const toggle = (id: string) => {
+    const s = new Set(expanded);
+    if (s.has(id)) s.delete(id);
+    else s.add(id);
+    update(s);
+  };
+  const vis = useMemo(() => computeVisible(b.ir, b.idx, lens, expanded), [b, lens, expanded]);
+  const expandAll = () => update(new Set(b.ir.nodes.filter((n) => b.idx.isContainer(n.id) && !lens.hideKinds.includes(n.kind)).map((n) => n.id)));
+  const collapseAll = () => update(new Set(["harness"]));
+  const reset = () => update(defaultExpanded(b.ir, b.idx, lens));
+  return { lens, vis, toggle, expandAll, collapseAll, reset, expanded };
+}
+
+export function LensGraph(props: {
+  b: Bundle;
+  lensId: LensId;
+  selected?: string;
+  select: (id: string | undefined) => void;
+  highlight?: Map<string, HL>;
+  edgeHighlight?: Set<string>;
+  observed?: Record<string, number>;
+  toolbar?: ReactNode;
+}) {
+  const L = useLens(props.b, props.lensId, props.selected);
+  return (
+    <div className="lensgraph">
+      <div className="lens-toolbar">
+        <span className="muted">{L.vis.nodes.length} nodes shown</span>
+        <button onClick={L.reset}>default</button>
+        <button onClick={L.expandAll}>expand all</button>
+        <button onClick={L.collapseAll}>collapse all</button>
+        {props.selected && props.b.idx.isContainer(props.selected) && <button onClick={() => L.toggle(props.selected!)}>{L.expanded.has(props.selected) ? "collapse" : "expand"} selected</button>}
+        {props.toolbar}
+      </div>
+      <Graph
+        nodes={L.vis.nodes}
+        edges={L.vis.edges}
+        selected={props.selected}
+        onSelect={props.select}
+        onToggle={L.toggle}
+        highlight={props.highlight}
+        edgeHighlight={props.edgeHighlight}
+        observed={props.observed}
+        ariaLabel={`${L.lens.title} graph of ${props.b.ir.harness.name}`}
+        layoutKey={`${props.b.entry.id}|${props.lensId}`}
+      />
+    </div>
+  );
+}
+
+export function Split({ graph, panel, panelTitle }: { graph: ReactNode; panel: ReactNode; panelTitle: string }) {
+  const [open, setOpen] = useState(true);
+  return (
+    <div className={`split ${open ? "" : "collapsed"}`}>
+      <div className="split-graph">{graph}</div>
+      <div className="split-panel">
+        <button className="panel-toggle" onClick={() => setOpen((x) => !x)} aria-expanded={open}>
+          {open ? "▾" : "▸"} {panelTitle}
+        </button>
+        {open && <div className="panel-body">{panel}</div>}
+      </div>
+    </div>
+  );
+}

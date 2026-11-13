@@ -1,0 +1,67 @@
+{
+  "generatedBy": "scripts/e2e.mjs",
+  "note": "Interactions counted for a scripted user; includes opening the harness from the home page. Not a human timing study.",
+  "scenarios": [
+    {
+      "question": "1. Where does the LLM choose the next action?",
+      "view": "B",
+      "interactions": 2,
+      "ms": 2526,
+      "answer": "Decision boundary table: main model call → stop_reason branch, block.type filter, handler-map dispatch (model-selected)",
+      "ok": true
+    },
+    {
+      "question": "2. Which rules are enforced by code, which only in the prompt?",
+      "view": "C",
+      "interactions": 2,
+      "ms": 2282,
+      "answer": ".env rule is prompt-only; workspace rule possibly enforced by assertInsideWorkspace (inferred)",
+      "ok": true
+    },
+    {
+      "question": "3. Can this model decision lead to a destructive effect, and through which guards?",
+      "view": "C",
+      "interactions": 4,
+      "ms": 3754,
+      "answer": "rm reachable via delete_file dispatch; gates: deny check, unknown-tool check, workspace assertion (+ conditional approval)",
+      "ok": true
+    },
+    {
+      "question": "4. Which memory is visible to a particular model call?",
+      "view": "D",
+      "interactions": 2,
+      "ms": 2278,
+      "answer": "main call: system.md + memory file + compacted conversation; reviewer: reviewer.md + its own conversation only",
+      "ok": true
+    },
+    {
+      "question": "5. Why did this observed run terminate or retry?",
+      "view": "E",
+      "interactions": 5,
+      "ms": 4533,
+      "answer": "retry = transport retry loop in callModel (529 overloaded); termination = final.status 'blocked' after a malformed-output retry",
+      "ok": true
+    },
+    {
+      "question": "6. If a prompt changes, which decisions and downstream effects may be affected?",
+      "view": "F",
+      "interactions": 3,
+      "ms": 2984,
+      "answer": "potential: main model call → its output branches/dispatch → all tool effects (labelled potential)",
+      "ok": true
+    },
+    {
+      "question": "7. Which parts of the harness remain unknown or insufficiently analyzed?",
+      "view": "G",
+      "interactions": 2,
+      "ms": 2265,
+      "answer": "plugin tool (dynamic import + plugin.run), plus listed analysis gaps",
+      "ok": true
+    }
+  ],
+  "smoke": {
+    "views": 35,
+    "failed": []
+  },
+  "runtimeErrors": []
+}
