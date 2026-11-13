@@ -134,9 +134,12 @@ export function App() {
     );
 
   return (
-    <div className="app">
+    <div className={`app ${route.harness ? "in-harness" : ""}`}>
       <header className="top">
-        <a className="brand" href="#/">Harness&nbsp;Visualizer</a>
+        <a className="brand" href="#/" aria-label="Harness Visualizer home">
+          <span className="brand-full">Harness&nbsp;Visualizer</span>
+          <span className="brand-short" aria-hidden="true">⌂</span>
+        </a>
         {index && route.harness && (
           <select aria-label="Harness" value={route.harness} onChange={(e) => go({ harness: e.target.value, node: undefined, trace: undefined, seed: undefined })}>
             {index.map((h) => (
@@ -159,8 +162,9 @@ export function App() {
         <div className="spacer" />
         {bundle && <Search b={bundle} onPick={(id) => select(id)} />}
         {bundle && <ExportMenu b={bundle} />}
-        <button className="ghost" onClick={() => setLegend((x) => !x)} aria-expanded={legend}>
-          Legend
+        <button className="ghost legend-btn" onClick={() => setLegend((x) => !x)} aria-expanded={legend} aria-label="Legend">
+          <span className="legend-full">Legend</span>
+          <span className="legend-short" aria-hidden="true">?</span>
         </button>
       </header>
       {legend && <Legend onClose={() => setLegend(false)} />}
@@ -179,7 +183,7 @@ export function App() {
             {route.view === "impact" && <ImpactView {...viewProps} />}
             {route.view === "coverage" && <CoverageView {...viewProps} evaluation={evaluation} />}
           </section>
-          <aside className="detail" aria-label="Node details">
+          <aside className={`detail ${route.node ? "has-node" : ""}`} aria-label="Node details">
             <Detail b={bundle!} id={route.node} select={select} go={go} openSource={setSource} />
           </aside>
         </main>

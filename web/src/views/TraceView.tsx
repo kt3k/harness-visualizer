@@ -32,7 +32,9 @@ export function TraceView({ b, route, select, go, openSource, replaceSelect }: V
   const cur = trace?.events[pos];
   const curNode = mapped[pos]?.nodeId;
   useEffect(() => {
-    if (curNode && curNode !== route.node) replaceSelect(curNode);
+    // on phones the details are a bottom sheet: only open it when the user asks
+    const narrow = typeof matchMedia === "function" && matchMedia("(max-width: 800px)").matches;
+    if (curNode && curNode !== route.node && !narrow) replaceSelect(curNode);
     list.current?.querySelector(`[data-pos="${pos}"]`)?.scrollIntoView({ block: "nearest" });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pos]);

@@ -338,3 +338,75 @@ blockquote { margin: 4px 0; padding: 4px 8px; border-left: 3px solid #c49b18; ba
 .lens-toolbar label { display: inline-flex; align-items: center; gap: 3px; margin-right: 6px; }
 @media (max-width: 900px) { .flow-grid { grid-template-columns: 1fr; } .story { padding: 10px 14px; } }
 .codelabel-line { font-size: 11.5px; color: var(--muted); margin: -2px 0 6px; word-break: break-word; }
+
+
+/* ---------------------------------------------------------------- mobile / narrow screens */
+.sheet-close { display: none; }
+@media (max-width: 800px) {
+  html, body, #root { height: auto; min-height: 100%; }
+  .app { height: auto; min-height: 100vh; }
+  .top { position: sticky; top: 0; z-index: 25; padding: 6px 10px; gap: 6px; row-gap: 6px; }
+  .top .brand { font-size: 14px; }
+  .top select { max-width: calc(100vw - 150px); font-size: 13px; }
+  .tabs { order: 10; width: 100%; flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+  .tabs::-webkit-scrollbar { display: none; }
+  .tabs a { padding: 5px 8px; font-size: 13px; }
+  .tabkey { display: none; }
+  .top .spacer { display: none; }
+  .search { order: 11; flex: 1; }
+  .search input { width: 100%; }
+  .search-results { left: 0; right: auto; width: calc(100vw - 20px); }
+  .top button.ghost { padding: 3px 7px; font-size: 13px; }
+  .export-menu { right: auto; left: -150px; width: min(320px, 92vw); }
+  .legend { position: fixed; top: 10px; left: 8px; right: 8px; max-height: 80vh; overflow: auto; }
+  .legend-grid { grid-template-columns: 1fr; }
+  .synthetic-banner { font-size: 11px; padding: 2px 10px; }
+
+  .main { display: block; }
+  .view { overflow: visible; display: block; }
+  .story { overflow: visible; padding: 10px 12px 90px; }
+  .story-sec { padding: 8px 10px; }
+  .story-head h1 { font-size: 19px; }
+  .coverage, .home { overflow: visible; padding: 10px 12px; }
+  .cards { grid-template-columns: 1fr; }
+
+  .split { display: block; }
+  .split-graph { height: 65vh; }
+  .lensgraph { height: 100%; }
+  .split-panel { max-height: none; }
+  .panel-body { overflow: visible; }
+  .lens-toolbar { flex-wrap: wrap; row-gap: 2px; }
+  .graph { min-height: 0; }
+
+  .trace-view { display: block; }
+  .trace-side { max-height: none; }
+  .timeline { max-height: 45vh; }
+  .trace-main { height: 65vh; }
+  .trace-recon { max-height: none; }
+
+  .tbl { display: block; overflow-x: auto; }
+  .tbl.tools td { min-width: 180px; }
+  .ctx { display: block; overflow-x: auto; }
+
+  /* details as a bottom sheet, only while a node is selected */
+  .detail { display: none; }
+  .detail.has-node {
+    display: block; position: fixed; left: 0; right: 0; bottom: 0; max-height: 58vh; z-index: 30;
+    border-left: none; border-top: 1px solid var(--line); border-radius: 14px 14px 0 0; box-shadow: 0 -8px 30px rgba(15, 23, 42, .25);
+  }
+  .sheet-close { display: block; position: sticky; top: 0; margin: 0 0 6px auto; background: #fff; z-index: 1; }
+  .source { width: 100vw; }
+}
+
+.brand-short, .legend-short { display: none; }
+@media (max-width: 800px) {
+  .in-harness .brand-full { display: none; }
+  .in-harness .brand-short { display: inline; font-size: 18px; }
+  .legend-full { display: none; }
+  .legend-short { display: inline; }
+  .top { flex-wrap: wrap; }
+  .top .search { display: none; }
+  .top select { flex: 1; min-width: 0; max-width: none; }
+  .tabs { order: 10; }
+}
+@media (max-width: 800px) { .story-sec { scroll-margin-top: 80px; } }

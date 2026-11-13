@@ -109,6 +109,7 @@ export function Detail({ b, id, select, go, openSource }: Props) {
   const sel = (x: string) => select(x);
   return (
     <div className="detail-body">
+      <button className="sheet-close" onClick={() => select(undefined)} aria-label="Close details">✕ close</button>
       <div className="dhead">
         <div className="dkind">
           {kindTag(n.kind)} {n.kind}

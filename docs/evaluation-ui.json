@@ -6,7 +6,7 @@
       "question": "1. Where does the LLM choose the next action?",
       "view": "S",
       "interactions": 1,
-      "ms": 1888,
+      "ms": 1768,
       "answer": "Step-by-step outline: the model is asked once per turn, may pick one of 7 tools; its reply decides tool use vs. final answer",
       "ok": true
     },
@@ -14,7 +14,7 @@
       "question": "2. Which rules are enforced by code, which only in the prompt?",
       "view": "S",
       "interactions": 1,
-      "ms": 1544,
+      "ms": 1545,
       "answer": "Watch out lists prompt-only rules; the tool table shows prompt rules next to the code checks",
       "ok": true
     },
@@ -22,7 +22,7 @@
       "question": "3. Can this model decision lead to a destructive effect, and through which guards?",
       "view": "S",
       "interactions": 1,
-      "ms": 1532,
+      "ms": 1546,
       "answer": "delete_file → delete files; stopped by the workspace check, the permission policy (human OK), and the checks before any tool runs",
       "ok": true
     },
@@ -30,7 +30,7 @@
       "question": "4. Which memory is visible to a particular model call?",
       "view": "S",
       "interactions": 1,
-      "ms": 1530,
+      "ms": 1528,
       "answer": "main call: system.md + memory file + conversation (may be summarized); reviewer: reviewer.md + its own conversation",
       "ok": true
     },
@@ -38,7 +38,7 @@
       "question": "5. Why did this observed run terminate or retry?",
       "view": "E",
       "interactions": 5,
-      "ms": 4688,
+      "ms": 4669,
       "answer": "retry = transport retry loop in callModel (529 overloaded); termination = final status 'blocked' after a malformed-output retry",
       "ok": true
     },
@@ -46,7 +46,7 @@
       "question": "6. If a prompt changes, which decisions and downstream effects may be affected?",
       "view": "F",
       "interactions": 3,
-      "ms": 2972,
+      "ms": 2973,
       "answer": "direct: main model call → its output branches/dispatch → all tool effects (labelled potential); indirect impacts listed separately",
       "ok": true
     },
@@ -54,7 +54,7 @@
       "question": "7. Which parts of the harness remain unknown or insufficiently analyzed?",
       "view": "S",
       "interactions": 1,
-      "ms": 1539,
+      "ms": 1522,
       "answer": "plugin tool loads and runs code at runtime; full list in the Unknowns & coverage tab",
       "ok": true
     }
@@ -63,5 +63,67 @@
     "views": 40,
     "failed": []
   },
+  "mobile": [
+    {
+      "view": "story",
+      "viewH": 4656,
+      "headerH": 70,
+      "overflowX": false,
+      "ok": true
+    },
+    {
+      "view": "overview",
+      "viewH": 1051,
+      "headerH": 70,
+      "overflowX": false,
+      "ok": true
+    },
+    {
+      "view": "decisions",
+      "viewH": 1588,
+      "headerH": 70,
+      "overflowX": false,
+      "ok": true
+    },
+    {
+      "view": "effects",
+      "viewH": 1959,
+      "headerH": 70,
+      "overflowX": false,
+      "ok": true
+    },
+    {
+      "view": "memory",
+      "viewH": 1526,
+      "headerH": 70,
+      "overflowX": false,
+      "ok": true
+    },
+    {
+      "view": "trace",
+      "viewH": 2076,
+      "headerH": 70,
+      "overflowX": false,
+      "ok": true
+    },
+    {
+      "view": "impact",
+      "viewH": 627,
+      "headerH": 70,
+      "overflowX": false,
+      "ok": true
+    },
+    {
+      "view": "coverage",
+      "viewH": 2528,
+      "headerH": 70,
+      "overflowX": false,
+      "ok": true
+    },
+    {
+      "view": "story: tap opens details sheet, close hides it",
+      "ok": true
+    }
+  ],
   "runtimeErrors": []
 }

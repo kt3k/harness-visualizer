@@ -8,7 +8,8 @@
  */
 import { createRequire } from "node:module";
 import * as fs from "node:fs";
-const { chromium } = createRequire(import.meta.url)("playwright");
+const require = createRequire(import.meta.url);
+const { chromium } = require("playwright");
 const BASE = process.env.BASE_URL ?? "http://localhost:4173/";
 
 const browser = await chromium.launch();
@@ -95,9 +96,34 @@ for (const h of index) {
     smoke.push({ harness: h.id, view: v, ok: failed === 0 });
   }
 }
+// mobile: every view must give its content real screen space; tapping a story line opens the details sheet
+const mctx = await browser.newContext({ ...require("playwright").devices["iPhone 13"] });
+const m = await mctx.newPage();
+m.on("pageerror", (e) => errors.push(`[mobile] ${e}`));
+const mobile = [];
+for (const v of ["story", "overview", "decisions", "effects", "memory", "trace", "impact", "coverage"]) {
+  await m.goto(`${BASE}#/h/coding-agent/${v}`);
+  await m.waitForTimeout(900);
+  const r = await m.evaluate(() => {
+    const view = document.querySelector(".view")?.getBoundingClientRect();
+    const top = document.querySelector(".top")?.getBoundingClientRect();
+    return { viewH: Math.round(view?.height ?? 0), headerH: Math.round(top?.height ?? 0), overflowX: document.documentElement.scrollWidth > innerWidth + 1 };
+  });
+  mobile.push({ view: v, ...r, ok: r.viewH > 300 && r.headerH < 120 && !r.overflowX });
+}
+await m.goto(`${BASE}#/h/coding-agent/story`);
+await m.waitForTimeout(900);
+await m.locator(".story-line", { hasText: "Ask the model" }).first().tap();
+await m.waitForTimeout(600);
+const sheetOpen = await m.locator("aside.detail.has-node").isVisible();
+await m.getByRole("button", { name: "Close details" }).tap();
+await m.waitForTimeout(400);
+const sheetClosed = !(await m.locator("aside.detail.has-node").count());
+mobile.push({ view: "story: tap opens details sheet, close hides it", ok: sheetOpen && sheetClosed });
 await browser.close();
-const out = { generatedBy: "scripts/e2e.mjs", note: "Interactions counted for a scripted user; includes opening the harness from the home page. Not a human timing study.", scenarios: results, smoke: { views: smoke.length, failed: smoke.filter((s) => !s.ok) }, runtimeErrors: errors };
+const out = { generatedBy: "scripts/e2e.mjs", note: "Interactions counted for a scripted user; includes opening the harness from the home page. Not a human timing study.", scenarios: results, smoke: { views: smoke.length, failed: smoke.filter((s) => !s.ok) }, mobile, runtimeErrors: errors };
 fs.writeFileSync("docs/evaluation-ui.json", JSON.stringify(out, null, 2) + "\n");
 for (const r of results) console.log(`${r.ok ? "✔" : "✘"} ${r.question} — ${r.interactions} interactions${r.ok ? "" : ` (${r.error})`}`);
 console.log(`smoke: ${smoke.length - out.smoke.failed.length}/${smoke.length} views ok; runtime errors: ${errors.length}`);
-if (!results.every((r) => r.ok) || out.smoke.failed.length || errors.length) process.exitCode = 1;
+console.log(`mobile (iPhone 13): ${mobile.filter((x) => x.ok).length}/${mobile.length} ok`, mobile.filter((x) => !x.ok));
+if (!results.every((r) => r.ok) || out.smoke.failed.length || errors.length || !mobile.every((x) => x.ok)) process.exitCode = 1;

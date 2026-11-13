@@ -183,16 +183,37 @@ export function Graph(p: Props) {
       return { k, x: mx - ((mx - t.x) * k) / t.k, y: my - ((my - t.y) * k) / t.k };
     });
   };
+  // pointer handling: one pointer pans, two pointers pinch-zoom (touch screens)
+  const pointers = useRef(new Map<number, { x: number; y: number }>());
+  const pinch = useRef<{ dist: number; k: number; x: number; y: number; mx: number; my: number } | null>(null);
   const onDown = (e: PointerEvent) => {
+    pointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (pointers.current.size === 2) {
+      const [a, b2] = [...pointers.current.values()];
+      const r = wrap.current!.getBoundingClientRect();
+      pinch.current = { dist: Math.hypot(a.x - b2.x, a.y - b2.y) || 1, k: tf.k, x: tf.x, y: tf.y, mx: (a.x + b2.x) / 2 - r.left, my: (a.y + b2.y) / 2 - r.top };
+      drag.current = null;
+      return;
+    }
     if ((e.target as Element).closest("[data-node]")) return;
     drag.current = { x: e.clientX, y: e.clientY, tx: tf.x, ty: tf.y };
     (e.target as Element).setPointerCapture?.(e.pointerId);
   };
   const onMove = (e: PointerEvent) => {
+    if (pointers.current.has(e.pointerId)) pointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    const pz = pinch.current;
+    if (pz && pointers.current.size >= 2) {
+      const [a, b2] = [...pointers.current.values()];
+      const k = Math.min(3, Math.max(0.08, (pz.k * Math.hypot(a.x - b2.x, a.y - b2.y)) / pz.dist));
+      setTf({ k, x: pz.mx - ((pz.mx - pz.x) * k) / pz.k, y: pz.my - ((pz.my - pz.y) * k) / pz.k });
+      return;
+    }
     const d = drag.current;
     if (d) setTf((t) => ({ ...t, x: d.tx + e.clientX - d.x, y: d.ty + e.clientY - d.y }));
   };
   const onUp = (e: PointerEvent) => {
+    pointers.current.delete(e.pointerId);
+    if (pointers.current.size < 2) pinch.current = null;
     const d = drag.current;
     drag.current = null;
     if (d && Math.abs(e.clientX - d.x) + Math.abs(e.clientY - d.y) < 4) p.onSelect(undefined);
@@ -242,7 +263,7 @@ export function Graph(p: Props) {
   const leaves = layout?.boxes.filter((b) => !b.vis.expanded) ?? [];
 
   return (
-    <div className="graph" ref={wrap} tabIndex={0} role="application" aria-label={`${p.ariaLabel}. Arrow keys move selection, Enter expands or collapses, plus and minus zoom, 0 fits.`} onKeyDown={onKey} onWheel={onWheel} onPointerDown={onDown} onPointerMove={onMove} onPointerUp={onUp}>
+    <div className="graph" ref={wrap} tabIndex={0} role="application" aria-label={`${p.ariaLabel}. Arrow keys move selection, Enter expands or collapses, plus and minus zoom, 0 fits.`} onKeyDown={onKey} onWheel={onWheel} onPointerDown={onDown} onPointerMove={onMove} onPointerUp={onUp} onPointerCancel={onUp}>
       {!layout && !err && <div className="graph-msg">Laying out…</div>}
       {err && <div className="graph-msg error">Layout failed: {err}</div>}
       <div className="graph-tools" onPointerDown={(e) => e.stopPropagation()}>
