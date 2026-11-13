@@ -1,5 +1,25 @@
 import { IRIndex } from "../../src/core/graph";
-import type { EdgeKind, HarnessIR, IRNode, NodeKind } from "../../src/core/ir";
+import type { EdgeKind, HarnessIR, IREdge, IRNode, NodeKind } from "../../src/core/ir";
+import { nodePhrase } from "../../src/core/humanize";
+
+export interface DisplayOptions {
+  /** plain-language labels instead of code */
+  plain: boolean;
+  /** hide implementation details (loop heads, return points, conversation appends, reply filters) and draw edges across them */
+  simplify: boolean;
+}
+
+/** Nodes that are implementation detail for a reader: hidden when simplifying, edges are drawn across them. */
+export function isDetailNode(n: IRNode, idx: IRIndex): boolean {
+  if (n.kind === "Junction") return true;
+  if (n.kind === "MemoryWrite" && !/^state:(file|db):/.test(String(n.attrs.store ?? ""))) return true;
+  if (n.kind === "Decision" && n.authority === "model") {
+    const outs = idx.outEdges(n.id, ["transition"]);
+    const thenE = outs.filter((e) => e.label?.startsWith("if "));
+    if (!outs.some((e) => e.label?.startsWith("case ")) && (thenE.length === 0 || thenE.every((e) => e.attrs.backEdge))) return true;
+  }
+  return false;
+}
 
 export type LensId = "overview" | "decisions" | "effects" | "memory" | "trace" | "impact";
 
@@ -64,6 +84,8 @@ export const LENSES: Record<LensId, Lens> = {
 export interface VisNode {
   id: string;
   node: IRNode;
+  label: string;
+  codeLabel: boolean;
   parent?: string; // visible parent container (expanded)
   container: boolean; // has children
   expanded: boolean;
@@ -86,8 +108,12 @@ export function defaultExpanded(ir: HarnessIR, idx: IRIndex, lens: Lens): Set<st
   return new Set(ir.nodes.filter((n) => idx.isContainer(n.id) && lens.expand(n, idx)).map((n) => n.id));
 }
 
-export function computeVisible(ir: HarnessIR, idx: IRIndex, lens: Lens, expanded: Set<string>): { nodes: VisNode[]; edges: VisEdge[] } {
+export function computeVisible(ir: HarnessIR, idx: IRIndex, lens: Lens, expanded: Set<string>, opts: DisplayOptions = { plain: true, simplify: true }): { nodes: VisNode[]; edges: VisEdge[] } {
   const hidden = new Set(lens.hideKinds);
+  const skip = (id: string) => {
+    const n = idx.node(id);
+    return !!n && opts.simplify && isDetailNode(n, idx);
+  };
   const visible = new Map<string, VisNode>();
   const isShown = (n: IRNode): boolean => {
     if (hidden.has(n.kind)) return false;
@@ -102,11 +128,15 @@ export function computeVisible(ir: HarnessIR, idx: IRIndex, lens: Lens, expanded
   for (const n of ir.nodes) {
     if (n.kind === "Harness") continue;
     if (!isShown(n)) continue;
+    if (skip(n.id)) continue;
     const container = idx.isContainer(n.id) && idx.descendants(n.id).some((d) => !hidden.has(d.kind));
     const parent = n.parent && n.parent !== "harness" && idx.node(n.parent)?.kind !== "Harness" ? n.parent : undefined;
+    const ph = opts.plain ? nodePhrase(n, ir) : { text: n.label, code: false };
     visible.set(n.id, {
       id: n.id,
       node: n,
+      label: ph.text.charAt(0).toUpperCase() + ph.text.slice(1),
+      codeLabel: !!ph.code,
       parent,
       container,
       expanded: container && expanded.has(n.id),
@@ -119,7 +149,9 @@ export function computeVisible(ir: HarnessIR, idx: IRIndex, lens: Lens, expanded
     const v = visible.get(id);
     if (v && !v.expanded) return [id];
     if (v && v.expanded) {
-      const ports = (v.node.attrs[role === "to" ? "entryIds" : "exitIds"] as string[] | undefined) ?? [];
+      let ports = (v.node.attrs[role === "to" ? "entryIds" : "exitIds"] as string[] | undefined) ?? [];
+      if (role === "to") ports = ports.flatMap((p) => (skip(p) ? succThrough(p).map((r) => r.to) : [p]));
+      else ports = ports.flatMap((p) => (skip(p) ? idx.inEdges(p, ["transition"]).map((x) => x.from).filter((x) => !skip(x)) : [p]));
       return [...new Set(ports.flatMap((p) => reps(p, role, depth + 1)))];
     }
     // not visible: nearest visible collapsed ancestor
@@ -129,8 +161,24 @@ export function computeVisible(ir: HarnessIR, idx: IRIndex, lens: Lens, expanded
     }
     return [];
   };
-  const agg = new Map<string, VisEdge>();
+  // contract hidden detail nodes: draw transitions across them
+  const succThrough = (id: string, seen = new Set<string>()): { to: string; back: boolean }[] => {
+    if (seen.has(id)) return [];
+    seen.add(id);
+    return idx.outEdges(id, ["transition", "dispatches"]).flatMap((x) => (skip(x.to) ? succThrough(x.to, seen).map((r) => ({ ...r, back: r.back || !!x.attrs.backEdge })) : [{ to: x.to, back: !!x.attrs.backEdge }]));
+  };
+  const effectiveEdges: IREdge[] = [];
   for (const e of ir.edges) {
+    if (skip(e.from) && (e.kind === "transition" || e.kind === "dispatches")) continue;
+    if (skip(e.to) && (e.kind === "transition" || e.kind === "dispatches")) {
+      for (const r of succThrough(e.to)) effectiveEdges.push({ ...e, id: e.id, to: r.to, attrs: { ...e.attrs, backEdge: !!e.attrs.backEdge || r.back } });
+      continue;
+    }
+    if (skip(e.to) || skip(e.from)) continue;
+    effectiveEdges.push(e);
+  }
+  const agg = new Map<string, VisEdge>();
+  for (const e of effectiveEdges) {
     if (!lens.edgeKinds.includes(e.kind)) continue;
     const fs = reps(e.from, "from");
     const ts = reps(e.to, "to");

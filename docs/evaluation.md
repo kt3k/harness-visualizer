@@ -83,17 +83,17 @@ coding-agent fixture and asserts the answer is on screen. Counts include opening
 from the home page. They are for a scripted user who knows where to click — a lower bound,
 **not** a human timing study (none was run).
 
-| Question | View | UI interactions |
+| Question | View | UI interactions (before → after the plain-language view) |
 |---|---|---|
-| 1. Where does the LLM choose the next action? | B | 2 |
-| 2. Which rules are enforced by code, which only in the prompt? | C | 2 |
-| 3. Can this model decision lead to a destructive effect, and through which guards? | C | 4 |
-| 4. Which memory is visible to a particular model call? | D | 2 |
-| 5. Why did this observed run terminate or retry? | E | 5 |
-| 6. If a prompt changes, which decisions and effects may be affected? | F | 3 |
-| 7. Which parts remain unknown or insufficiently analyzed? | G | 2 |
+| 1. Where does the LLM choose the next action? | S | 2 → 1 |
+| 2. Which rules are enforced by code, which only in the prompt? | S | 2 → 1 |
+| 3. Can this model decision lead to a destructive effect, and through which guards? | S | 4 → 1 |
+| 4. Which memory is visible to a particular model call? | S | 2 → 1 |
+| 5. Why did this observed run terminate or retry? | E | 5 → 5 |
+| 6. If a prompt changes, which decisions and effects may be affected? | F | 3 → 3 |
+| 7. Which parts remain unknown or insufficiently analyzed? | S | 2 → 1 |
 
-The same script smoke-tests all 7 views of all 5 harnesses (35/35 without runtime errors).
+The same script smoke-tests all 8 views of all 5 harnesses (40/40 without runtime errors).
 
 ## 4. What was not measured
 

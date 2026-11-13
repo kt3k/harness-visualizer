@@ -7,6 +7,12 @@ import type { Route } from "./App";
 import type { SourceTarget } from "./SourceView";
 import { AUTHORITY_LABEL, authorityOf } from "./viewmodel";
 import { kindTag } from "./Graph";
+import { nodePhrase } from "../../src/core/humanize";
+
+export function plainLabel(b: Bundle, n: IRNode): string {
+  const t = nodePhrase(n, b.ir).text;
+  return t.charAt(0).toUpperCase() + t.slice(1);
+}
 
 interface Props {
   b: Bundle;
@@ -28,10 +34,14 @@ export function NodeLink({ b, id, select, short }: { b: Bundle; id: string; sele
   const n = b.idx.node(id);
   if (!n) return <code>{id}</code>;
   return (
-    <button className={`nlink auth-${authorityOf(n)}`} onClick={() => select(id)} title={n.id}>
-      <span className="ktag">{kindTag(n.kind)}</span> {short && n.label.length > 48 ? `${n.label.slice(0, 47)}…` : n.label}
+    <button className={`nlink auth-${authorityOf(n)}`} onClick={() => select(id)} title={`${n.kind} — code: ${n.label}`}>
+      <span className="ktag">{kindTag(n.kind)}</span> {clipText(plainLabel(b, n), short ? 56 : 120)}
     </button>
   );
+}
+
+function clipText(s: string, n: number) {
+  return s.length > n ? `${s.slice(0, n - 1)}…` : s;
 }
 
 export function SourceLink({ b, r, openSource }: { b: Bundle; r: SourceRef; openSource: (t: SourceTarget) => void }) {
@@ -103,7 +113,8 @@ export function Detail({ b, id, select, go, openSource }: Props) {
         <div className="dkind">
           {kindTag(n.kind)} {n.kind}
         </div>
-        <h2>{n.label}</h2>
+        <h2>{plainLabel(b, n)}</h2>
+        {plainLabel(b, n) !== n.label && <div className="codelabel-line" title="label derived from code">code: <code>{n.label}</code></div>}
         <div className="chips">
           <Chip kind={`auth-${auth}`} title="Who decides what happens at this node">
             {AUTHORITY_LABEL[auth]}

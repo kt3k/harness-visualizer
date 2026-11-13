@@ -3,7 +3,14 @@
 This walks through a real change on the bundled fixtures: **the coding agent must never
 `git push --force`, and must not read `.env` files.** The same steps apply to your harness.
 
-## 0. Orient (Architecture, A)
+## 0. Read "What it does" (S) first
+
+The landing page tells you, in plain language, what starts each agent, what it does step by
+step, which tools the model can pick (with what each one really does and what stops it), what
+the harness touches, how runs end, and — first — what to watch out for. Every line links to
+its evidence; the graph views below are for drilling in.
+
+## 0b. Orient (Map, A)
 
 Open the harness. The architecture view shows agents, subagents, tool sets, stores and entry
 points; the *Findings* panel lists what deserves attention first. For `coding-agent`:

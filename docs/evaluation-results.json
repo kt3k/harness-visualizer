@@ -189,7 +189,7 @@
       "nodesWithInferredClaims": 15,
       "nodes": 107,
       "edges": 189,
-      "analysisMs": 618
+      "analysisMs": 794
     },
     "research-orchestrator": {
       "extraction": {
@@ -271,7 +271,7 @@
       "nodesWithInferredClaims": 5,
       "nodes": 40,
       "edges": 58,
-      "analysisMs": 271
+      "analysisMs": 327
     },
     "simple-tool-loop": {
       "extraction": {
@@ -347,7 +347,7 @@
       "nodesWithInferredClaims": 0,
       "nodes": 30,
       "edges": 34,
-      "analysisMs": 199
+      "analysisMs": 223
     },
     "support-refund-agent": {
       "extraction": {
@@ -455,7 +455,7 @@
       "nodesWithInferredClaims": 4,
       "nodes": 61,
       "edges": 83,
-      "analysisMs": 205
+      "analysisMs": 239
     }
   }
 }

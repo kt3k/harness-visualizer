@@ -13,11 +13,13 @@ import { TraceView } from "./views/TraceView";
 import { ImpactView } from "./views/ImpactView";
 import { CoverageView } from "./views/CoverageView";
 import { Home } from "./views/Home";
+import { StoryView } from "./views/StoryView";
 
-export type ViewId = "overview" | "decisions" | "effects" | "memory" | "trace" | "impact" | "coverage";
+export type ViewId = "story" | "overview" | "decisions" | "effects" | "memory" | "trace" | "impact" | "coverage";
 
 export const VIEWS: { id: ViewId; key: string; title: string; hint: string }[] = [
-  { id: "overview", key: "A", title: "Architecture", hint: "Agents, loops, subagents, tools, stores and how they invoke each other" },
+  { id: "story", key: "S", title: "What it does", hint: "Plain-language summary: what starts it, step by step, what the model can do, what it touches, what to watch out for" },
+  { id: "overview", key: "A", title: "Map", hint: "Agents, loops, subagents, tools, stores and how they invoke each other" },
   { id: "decisions", key: "B", title: "Decision boundary", hint: "What code decides vs. what the model decides; request → authorization → execution" },
   { id: "effects", key: "C", title: "Effects & authority", hint: "Reachable side effects and the code gates in front of them; prompt-only rules" },
   { id: "memory", key: "D", title: "State & memory", hint: "Stores, reads, writes and what enters each model call" },
@@ -39,8 +41,8 @@ function parseHash(): Route {
   const [pathPart, query = ""] = h.split("?");
   const parts = pathPart.split("/").filter(Boolean);
   const q = new URLSearchParams(query);
-  if (parts[0] !== "h" || !parts[1]) return { view: "overview" };
-  return { harness: parts[1], view: (VIEWS.find((v) => v.id === parts[2])?.id ?? "overview") as ViewId, node: q.get("n") ?? undefined, trace: q.get("t") ?? undefined, seed: q.get("seed") ?? undefined };
+  if (parts[0] !== "h" || !parts[1]) return { view: "story" };
+  return { harness: parts[1], view: (VIEWS.find((v) => v.id === parts[2])?.id ?? "story") as ViewId, node: q.get("n") ?? undefined, trace: q.get("t") ?? undefined, seed: q.get("seed") ?? undefined };
 }
 
 export function hashOf(r: Route): string {
@@ -110,7 +112,7 @@ export function App() {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if ((e.target as HTMLElement)?.closest("input,textarea,select")) return;
-      if (e.altKey && /^[a-g]$/i.test(e.key)) {
+      if (e.altKey && /^[a-gs]$/i.test(e.key)) {
         const v = VIEWS.find((x) => x.key.toLowerCase() === e.key.toLowerCase());
         if (v) go({ view: v.id });
       }
@@ -168,6 +170,7 @@ export function App() {
         <main className="main">
           {bundle!.ir.harness.synthetic && <div className="synthetic-banner">Synthetic fixture harness — written to exercise the analyzer; not production code.</div>}
           <section className="view" aria-label={VIEWS.find((v) => v.id === route.view)?.title}>
+            {route.view === "story" && <StoryView {...viewProps} />}
             {route.view === "overview" && <OverviewView {...viewProps} />}
             {route.view === "decisions" && <DecisionsView {...viewProps} />}
             {route.view === "effects" && <EffectsView {...viewProps} />}

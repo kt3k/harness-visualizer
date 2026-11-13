@@ -1,7 +1,7 @@
 import ELK from "elkjs/lib/elk.bundled.js";
 import { useEffect, useMemo, useRef, useState, type KeyboardEvent, type PointerEvent, type WheelEvent } from "react";
 import type { VisEdge, VisNode } from "./viewmodel";
-import { authorityOf, shortLabel } from "./viewmodel";
+import { authorityOf } from "./viewmodel";
 
 const elk = new ELK();
 
@@ -39,7 +39,7 @@ const LEAF_H = 34;
 
 function leafSize(v: VisNode): { w: number; h: number } {
   if (v.node.kind === "Junction") return { w: v.node.attrs.role === "loop-head" ? 120 : 110, h: 22 };
-  const label = shortLabel(v.node, 40);
+  const label = v.label.length > 40 ? v.label.slice(0, 39) : v.label;
   const w = Math.min(250, Math.max(96, label.length * 6.4 + (v.container ? 44 : 30)));
   return { w, h: v.node.kind === "Decision" ? 40 : LEAF_H };
 }
@@ -166,10 +166,11 @@ export function Graph(p: Props) {
     const k = 0.7;
     const target =
       layout.boxes.find((b) => b.id === p.selected) ??
+      layout.boxes.filter((b) => b.vis.node.kind === "ModelCall").sort((a, b) => a.y - b.y)[0] ??
       layout.boxes.filter((b) => b.vis.node.kind === "Agent" || b.vis.node.kind === "ExternalEvent").sort((a, b) => a.y - b.y)[0] ??
       layout.boxes.sort((a, b) => a.y - b.y)[0];
     if (!target) return;
-    setTf({ k, x: W / 2 - (target.x + target.w / 2) * k, y: 30 - target.y * k });
+    setTf({ k, x: W / 2 - (target.x + target.w / 2) * k, y: H * 0.3 - target.y * k });
   }
 
   const onWheel = (e: WheelEvent) => {
@@ -281,7 +282,7 @@ export function Graph(p: Props) {
                 p.onToggle(b.id);
               }}>
                 <rect x={b.x} y={b.y} width={b.w} height={26} rx={8} className="chead-bg" />
-                <text x={b.x + 10} y={b.y + 17} className="ctitle">▾ {kindTag(b.vis.node.kind)} {shortLabel(b.vis.node, Math.max(10, Math.floor(b.w / 7) - 6))}</text>
+                <text x={b.x + 10} y={b.y + 17} className="ctitle">▾ {kindTag(b.vis.node.kind)} {clip(b.vis.label, Math.max(10, Math.floor(b.w / 7) - 6))}</text>
               </g>
               <title>{`${b.vis.node.kind}: ${b.vis.node.label} — click header to collapse`}</title>
             </g>
@@ -325,9 +326,9 @@ export function Graph(p: Props) {
                 }}
               >
                 <Shape b={b} />
-                <text x={b.x + (n.kind === "Junction" ? b.w / 2 : 10)} y={b.y + b.h / 2 + 4} textAnchor={n.kind === "Junction" ? "middle" : "start"} className="nlabel">
+                <text x={b.x + (n.kind === "Junction" ? b.w / 2 : 10)} y={b.y + b.h / 2 + 4} textAnchor={n.kind === "Junction" ? "middle" : "start"} className={`nlabel ${b.vis.codeLabel ? "codelabel" : ""}`}>
                   {n.kind !== "Junction" && <tspan className="ktag">{kindTag(n.kind)} </tspan>}
-                  {shortLabel(n, Math.max(8, Math.floor((b.w - 30) / 6.4)))}
+                  {clip(b.vis.label, Math.max(8, Math.floor((b.w - 30) / 6.4)))}
                 </text>
                 {b.vis.container && (
                   <text x={b.x + b.w - 8} y={b.y + 13} textAnchor="end" className="expand-hint">
@@ -340,7 +341,7 @@ export function Graph(p: Props) {
                     <text x={b.x + b.w - 4} y={b.y + b.h + 1.5} textAnchor="middle">{obs > 99 ? "99+" : obs}</text>
                   </g>
                 )}
-                <title>{`${n.kind} · ${authorityOf(n)}${n.assurance.enforcement ? ` · ${n.assurance.enforcement}` : ""} · ${n.assurance.basis}\n${n.label}${b.vis.container ? "\n(double-click to expand)" : ""}`}</title>
+                <title>{`${b.vis.label}\n— ${n.kind} · ${authorityOf(n)}${n.assurance.enforcement ? ` · ${n.assurance.enforcement}` : ""} · ${n.assurance.basis}\ncode: ${n.label}${b.vis.container ? "\n(double-click to expand)" : ""}`}</title>
               </g>
             );
           })}
@@ -348,6 +349,10 @@ export function Graph(p: Props) {
       </svg>
     </div>
   );
+}
+
+function clip(s: string, n: number) {
+  return s.length > n ? `${s.slice(0, n - 1)}…` : s;
 }
 
 function truncate(s: string, n: number) {

@@ -33,7 +33,7 @@ async function scenario(q, view, fn) {
   const t0 = Date.now();
   await page.goto(`${BASE}#/`);
   await page.waitForTimeout(800);
-  await act(() => page.locator('a.card[href="#/h/coding-agent/overview"]').click());
+  await act(() => page.locator('a.card[href="#/h/coding-agent/story"]').click());
   try {
     const answer = await fn();
     results.push({ question: q, view, interactions: steps, ms: Date.now() - t0, answer, ok: true });
@@ -45,56 +45,50 @@ const tab = (name) => act(() => page.getByRole("navigation", { name: "Views" }).
 const panel = () => page.locator(".split-panel");
 const detail = () => page.locator("aside.detail");
 
-await scenario("1. Where does the LLM choose the next action?", "B", async () => {
-  await tab("Decision boundary");
-  await expectText(panel(), /Where the model chooses the next action[\s\S]*dispatch block\.name/);
-  return "Decision boundary table: main model call → stop_reason branch, block.type filter, handler-map dispatch (model-selected)";
+const story = () => page.locator(".story");
+await scenario("1. Where does the LLM choose the next action?", "S", async () => {
+  await expectText(story(), /Coding agent[\s\S]*Ask the model[\s\S]*may choose a tool: read_file[\s\S]*If the model asks to use a tool/);
+  return "Step-by-step outline: the model is asked once per turn, may pick one of 7 tools; its reply decides tool use vs. final answer";
 });
-await scenario("2. Which rules are enforced by code, which only in the prompt?", "C", async () => {
-  await tab("Effects");
-  await expectText(panel(), /Do not read secrets[\s\S]*prompt-only/);
-  await expectText(panel(), /Never delete files outside[\s\S]*possibly-enforced/);
-  return ".env rule is prompt-only; workspace rule possibly enforced by assertInsideWorkspace (inferred)";
+await scenario("2. Which rules are enforced by code, which only in the prompt?", "S", async () => {
+  await expectText(story(), /Watch out[\s\S]*Do not read secrets[\s\S]*no code enforces it/);
+  await expectText(page.locator("table.tools"), /Never delete files outside the workspace/);
+  return "Watch out lists prompt-only rules; the tool table shows prompt rules next to the code checks";
 });
-await scenario("3. Can this model decision lead to a destructive effect, and through which guards?", "C", async () => {
-  await tab("Effects");
-  await act(() => page.getByLabel("Search nodes").fill("model call"));
-  await act(() => page.getByLabel("Search nodes").press("Enter"));
-  await expectText(detail(), /Potentially reachable effects[\s\S]*fs\.promises\.rm/i);
-  await expectText(detail(), /assertInsideWorkspace|resolved\.startsWith/);
-  return "rm reachable via delete_file dispatch; gates: deny check, unknown-tool check, workspace assertion (+ conditional approval)";
+await scenario("3. Can this model decision lead to a destructive effect, and through which guards?", "S", async () => {
+  await expectText(page.locator("table.tools tr", { hasText: "delete_file" }), /delete files[\s\S]*refuses if path outside workspace[\s\S]*human's OK/);
+  await expectText(page.locator(".common-checks"), /permission policy denies it/);
+  return "delete_file → delete files; stopped by the workspace check, the permission policy (human OK), and the checks before any tool runs";
 });
-await scenario("4. Which memory is visible to a particular model call?", "D", async () => {
-  await tab("State & memory");
-  await expectText(panel(), /What enters each model call[\s\S]*read MEMORY_FILE/);
-  return "main call: system.md + memory file + compacted conversation; reviewer: reviewer.md + its own conversation only";
+await scenario("4. Which memory is visible to a particular model call?", "S", async () => {
+  await expectText(story(), /sees: instructions: prompts\/system\.md; \.agent\/memory\.md; the conversation so far/);
+  return "main call: system.md + memory file + conversation (may be summarized); reviewer: reviewer.md + its own conversation";
 });
 await scenario("5. Why did this observed run terminate or retry?", "E", async () => {
   await tab("Execution trace");
   await act(() => page.locator(".trace-side select").selectOption({ value: "02-delete-denied-then-malformed" }));
   await act(() => page.locator(".timeline li.ev-retry").first().click());
-  await expectText(page.locator(".evdetail"), /retry[\s\S]*(callModel|model\.ts)/);
+  await expectText(page.locator(".evdetail"), /retry[\s\S]*(callModel|model\.ts)/i);
   await act(() => page.locator(".timeline li.ev-termination").first().click());
   await expectText(page.locator(".evdetail"), /termination[\s\S]*blocked/);
-  return "retry = transport retry loop in callModel (529 overloaded); termination = final.status 'blocked' after a malformed-output retry";
+  return "retry = transport retry loop in callModel (529 overloaded); termination = final status 'blocked' after a malformed-output retry";
 });
 await scenario("6. If a prompt changes, which decisions and downstream effects may be affected?", "F", async () => {
   await tab("Change impact");
   await act(() => page.locator(".impact-controls select").selectOption({ value: "prompt:prompts/system.md" }));
-  await expectText(panel(), /Potentially affected decisions[\s\S]*Potentially affected effects[\s\S]*fs\.promises\.rm/);
-  return "potential: main model call → its output branches/dispatch → all tool effects (labelled potential)";
+  await expectText(panel(), /Potentially affected decisions[\s\S]*Potentially affected effects[\s\S]*Delete files/);
+  return "direct: main model call → its output branches/dispatch → all tool effects (labelled potential); indirect impacts listed separately";
 });
-await scenario("7. Which parts of the harness remain unknown or insufficiently analyzed?", "G", async () => {
-  await tab("Unknowns");
-  await expectText(page.locator(".coverage"), /dynamic import/);
-  return "plugin tool (dynamic import + plugin.run), plus listed analysis gaps";
+await scenario("7. Which parts of the harness remain unknown or insufficiently analyzed?", "S", async () => {
+  await expectText(story(), /Watch out[\s\S]*cannot be analysed/);
+  return "plugin tool loads and runs code at runtime; full list in the Unknowns & coverage tab";
 });
 
 // smoke test: every view of every harness
 const index = await (await fetch(`${BASE}data/harnesses.json`)).json();
 const smoke = [];
 for (const h of index) {
-  for (const v of ["overview", "decisions", "effects", "memory", "trace", "impact", "coverage"]) {
+  for (const v of ["story", "overview", "decisions", "effects", "memory", "trace", "impact", "coverage"]) {
     await page.goto(`${BASE}#/h/${h.id}/${v}`);
     await page.waitForTimeout(900);
     const failed = await page.locator(".graph-msg.error, .fatal").count();

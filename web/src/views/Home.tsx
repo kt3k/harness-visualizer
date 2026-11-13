@@ -17,7 +17,7 @@ export function Home({ index, evaluation }: { index: HarnessEntry[]; evaluation?
       <p className="muted">All samples are <b>synthetic fixtures</b> written for this project. Their sources and traces are part of the repository.</p>
       <div className="cards">
         {index.map((h) => (
-          <a key={h.id} className="card" href={`#/h/${h.id}/overview`}>
+          <a key={h.id} className="card" href={`#/h/${h.id}/story`}>
             <h3>{h.name}</h3>
             <p>{h.description}</p>
             <div className="cardstats">

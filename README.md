@@ -67,7 +67,8 @@ calls are reported as `Unknown`, never dropped.
 
 | View | Answers |
 |---|---|
-| **A Architecture** | agents, subagents, tools, stores, entry points; findings |
+| **S What it does** (default) | plain-language summary: risks first, what starts each agent, step by step, what the model can do and what stops it, what it touches, how it ends |
+| **A Map** | agents, subagents, tools, stores, entry points; findings |
 | **B Decision boundary** | where the model chooses; request → authorization → execution |
 | **C Effects & authority** | reachable side effects and their gates; prompt-only rules |
 | **D State & memory** | what enters each model call; stores, writers, readers |
@@ -75,9 +76,10 @@ calls are reported as `Unknown`, never dropped.
 | **F Change impact** | potential direct/indirect impact of a prompt, guard or `file:line`; IR diff and before/after behavior between versions |
 | **G Unknowns & coverage** | unresolved items, gaps, inferred claims, metrics |
 
-Click a node for its purpose, decision authority, inputs/outputs, gates, reachable effects,
+Graphs use plain-language labels and hide implementation details by default (toggles in
+the graph toolbar). Click a node for its purpose, decision authority, inputs/outputs, gates, reachable effects,
 source (built-in viewer + GitHub link), evidence and uncertainties. Double-click / Enter
-expands containers. Keyboard: Alt+A…G views, arrows move, +/− zoom, `/` search, `?` legend.
+expands containers. Keyboard: Alt+S / Alt+A…G views, arrows move, +/− zoom, `/` search, `?` legend.
 
 ## Command line
 
@@ -143,6 +145,7 @@ questions in the real UI.
 * [Architecture](docs/architecture.md) — components, threat model, limitations
 * [Operator guide](docs/operator-guide.md) — making a controlled change and verifying it
 * [Evaluation](docs/evaluation.md) — measured results and what was not measured
+* [Reducing cognitive load](docs/cognitive-load.md) — the plain-language layer and "What it does" view
 * [Original task](docs/agent-instructions.md)
 
 ## Repository layout

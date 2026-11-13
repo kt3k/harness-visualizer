@@ -1,9 +1,38 @@
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { Graph, type HL } from "../Graph";
 import type { Bundle } from "../data";
-import { LENSES, computeVisible, defaultExpanded, type LensId } from "../viewmodel";
+import { LENSES, computeVisible, defaultExpanded, type DisplayOptions, type LensId } from "../viewmodel";
 
 const expandedStore = new Map<string, Set<string>>();
+
+function loadDisplay(): DisplayOptions {
+  try {
+    const v = JSON.parse(localStorage.getItem("hv-display") ?? "null");
+    if (v && typeof v.plain === "boolean" && typeof v.simplify === "boolean") return v;
+  } catch {
+    /* storage unavailable */
+  }
+  return { plain: true, simplify: true };
+}
+let displayState = loadDisplay();
+const displayListeners = new Set<(d: DisplayOptions) => void>();
+export function useDisplay(): [DisplayOptions, (d: DisplayOptions) => void] {
+  const [d, setD] = useState(displayState);
+  useEffect(() => {
+    displayListeners.add(setD);
+    return () => void displayListeners.delete(setD);
+  }, []);
+  const set = (n: DisplayOptions) => {
+    displayState = n;
+    try {
+      localStorage.setItem("hv-display", JSON.stringify(n));
+    } catch {
+      /* ignore */
+    }
+    displayListeners.forEach((f) => f(n));
+  };
+  return [d, set];
+}
 
 export function useLens(b: Bundle, lensId: LensId, focus?: string) {
   const lens = LENSES[lensId];
@@ -31,7 +60,8 @@ export function useLens(b: Bundle, lensId: LensId, focus?: string) {
     else s.add(id);
     update(s);
   };
-  const vis = useMemo(() => computeVisible(b.ir, b.idx, lens, expanded), [b, lens, expanded]);
+  const [display] = useDisplay();
+  const vis = useMemo(() => computeVisible(b.ir, b.idx, lens, expanded, display), [b, lens, expanded, display]);
   const expandAll = () => update(new Set(b.ir.nodes.filter((n) => b.idx.isContainer(n.id) && !lens.hideKinds.includes(n.kind)).map((n) => n.id)));
   const collapseAll = () => update(new Set(["harness"]));
   const reset = () => update(defaultExpanded(b.ir, b.idx, lens));
@@ -49,9 +79,12 @@ export function LensGraph(props: {
   toolbar?: ReactNode;
 }) {
   const L = useLens(props.b, props.lensId, props.selected);
+  const [display, setDisplay] = useDisplay();
   return (
     <div className="lensgraph">
       <div className="lens-toolbar">
+        <label title="Show plain-language labels instead of code"><input type="checkbox" checked={display.plain} onChange={(e) => setDisplay({ ...display, plain: e.target.checked })} /> plain labels</label>
+        <label title="Hide loop heads, return points, conversation appends and reply filters; draw edges across them"><input type="checkbox" checked={display.simplify} onChange={(e) => setDisplay({ ...display, simplify: e.target.checked })} /> hide details</label>
         <span className="muted">{L.vis.nodes.length} nodes shown</span>
         <button onClick={L.reset}>default</button>
         <button onClick={L.expandAll}>expand all</button>

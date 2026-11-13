@@ -1116,6 +1116,7 @@ class Analysis {
           evidence: [ev("static", "catalog:effect-api", `callee resolves to ${rule.id}`)],
           attrs: {
             category: rule.category,
+            describe: rule.describe,
             irreversible: rule.irreversible ?? "unknown",
             api: rule.api,
             target: this.effectTarget(ci, fn),
@@ -2161,7 +2162,13 @@ class Walker {
     this.preds = [{ ir: containerId, g, label: "return" }];
     const t = this.trys[this.trys.length - 1];
     if (t) t.throwers.push({ ir: containerId, g, label: "throws" });
-    this.a.addEdge("invokes", this.a.container.get(this.fn)!, containerId, { evidence: [ev("static", "checker:symbol", `call at ${this.a.ref(at).file}:${this.a.ref(at).startLine}`)] });
+    const r = this.a.ref(at);
+    const e = this.a.addEdge("invokes", this.a.container.get(this.fn)!, containerId, { evidence: [ev("static", "checker:symbol", `call at ${r.file}:${r.startLine}`)] });
+    if (e) {
+      const sites = (e.attrs.sites as { file: string; line: number }[] | undefined) ?? [];
+      if (!sites.some((x) => x.file === r.file && x.line === r.startLine)) sites.push({ file: r.file, line: r.startLine });
+      e.attrs.sites = sites;
+    }
   }
 
   // ---------------------------------------------------------------- statements
@@ -2374,7 +2381,7 @@ class Walker {
   ifStmt(s: ts.IfStatement) {
     this.expr(s.expression);
     if (this.toolDispatchIf(s)) return;
-    const cond = shortText(s.expression, 90);
+    const cond = shortText(s.expression, 240);
     const then = this.branchInfo(s.thenStatement);
     const els = this.branchInfo(s.elseStatement);
     const cls = this.classifyCondition(s.expression);
@@ -2631,7 +2638,7 @@ class Walker {
     v2(s.statement);
     const counterName = ts.isForStatement(s) && s.initializer && ts.isVariableDeclarationList(s.initializer) ? s.initializer.declarations[0]?.name.getText() : "";
     const loopType = hasTry && /attempt|retr|tries/i.test(`${counterName} ${cond}`) ? "retry" : hasModel ? (this.a.wrappers.has(this.fn) ? "retry" : "agent") : ts.isForOfStatement(s) ? "iteration" : "loop";
-    const constants = this.a.constantsIn(ts.isForStatement(s) ? s.condition ?? s : s);
+    const constants = infinite ? {} : this.a.constantsIn(ts.isForStatement(s) ? s.condition ?? s : ts.isWhileStatement(s) || ts.isDoStatement(s) || ts.isForOfStatement(s) || ts.isForInStatement(s) ? s.expression : s);
     const loopId = `loop:${this.fn.key}/${this.a.next(`${this.fn.key}|Loop`)}`;
     this.a.addNode({
       id: loopId,
@@ -2669,7 +2676,8 @@ class Walker {
     this.preds = [{ ir: jid, g: jid, label: cond && !infinite ? `iterate while ${cond}` : "iterate" }];
     this.stmt(s.statement);
     this.frames.pop();
-    for (const p of [...this.preds, ...frame.continues]) this.link({ ...p, label: "next iteration", attrs: { backEdge: true } }, jid, jid);
+    for (const p of this.preds) this.link({ ...p, label: "next iteration", attrs: { backEdge: true } }, jid, jid);
+    for (const p of frame.continues) this.link({ ...p, label: p.label ?? "next iteration", attrs: { backEdge: true } }, jid, jid);
     this.parents.pop();
     this.preds = [...(infinite ? [] : [{ ir: jid, g: jid, label: ts.isForOfStatement(s) ? "exit: iteration complete" : `exit: !(${cond})`, attrs: { budget: constants } }]), ...frame.breaks];
   }

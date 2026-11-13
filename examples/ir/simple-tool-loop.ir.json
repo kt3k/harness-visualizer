@@ -11,7 +11,7 @@
     "analyzer": "harness-visualizer/ts-adapter",
     "analyzerVersion": "0.1.0",
     "adapter": "typescript",
-    "inputsHash": "7b09a31eb87df4eed671293cb1b8f4177859347f5fe796950ca7f4b81145202b",
+    "inputsHash": "bef4b366d2e0c045c931fb90cc2f326dbbe551d8ee931d4e7ffe6c7b90f93e14",
     "redaction": "standard"
   },
   "nodes": [
@@ -894,6 +894,7 @@
       "uncertainties": [],
       "attrs": {
         "category": "network",
+        "describe": "make an HTTP request",
         "irreversible": "unknown",
         "api": "fetch",
         "target": "api.weather.example",
@@ -1333,7 +1334,14 @@
           "claim": "call at src/agent.ts:32"
         }
       ],
-      "attrs": {}
+      "attrs": {
+        "sites": [
+          {
+            "file": "src/agent.ts",
+            "line": 32
+          }
+        ]
+      }
     },
     {
       "id": "transition:proc:src/tools.ts#runTool->junction:loop:src/agent.ts#runWeatherAgent/1#next iteration",
@@ -1353,11 +1361,11 @@
       }
     },
     {
-      "id": "transition:decision:src/agent.ts#runWeatherAgent/1->junction:loop:src/agent.ts#runWeatherAgent/1#next iteration",
+      "id": "transition:decision:src/agent.ts#runWeatherAgent/1->junction:loop:src/agent.ts#runWeatherAgent/1#if block.type !== \"tool_use\"",
       "kind": "transition",
       "from": "decision:src/agent.ts#runWeatherAgent/1",
       "to": "junction:loop:src/agent.ts#runWeatherAgent/1",
-      "label": "next iteration",
+      "label": "if block.type !== \"tool_use\"",
       "evidence": [
         {
           "basis": "static",

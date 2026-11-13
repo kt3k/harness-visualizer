@@ -23,12 +23,18 @@ export interface ApiRule {
   /** for fs operations that may be state stores */
   fsOp?: "read" | "write" | "delete";
   target?: string;
+  /** plain-language description of what the call does (for humans) */
+  describe?: string;
 }
 
+const FS_DESCRIBE: Record<string, string> = {
+  readFile: "read a file", readdir: "list a directory", writeFile: "write a file", appendFile: "append to a file", mkdir: "create a directory",
+  rename: "move/rename a file", rm: "delete files", unlink: "delete a file", rmdir: "delete a directory",
+};
 const fsPromises = (name: string, op: "read" | "write" | "delete", category: string, irreversible: boolean | "unknown"): ApiRule[] => [
-  { id: `fs.promises.${name}`, module: "node:fs/promises", path: [name], cls: "effect", api: `fs.promises.${name}`, category, irreversible, fsOp: op, target: "filesystem" },
-  { id: `fs.${name}`, module: "node:fs", path: [name], cls: "effect", api: `fs.${name}`, category, irreversible, fsOp: op, target: "filesystem" },
-  { id: `fs.${name}Sync`, module: "node:fs", path: [`${name}Sync`], cls: "effect", api: `fs.${name}Sync`, category, irreversible, fsOp: op, target: "filesystem" },
+  { id: `fs.promises.${name}`, module: "node:fs/promises", path: [name], cls: "effect", api: `fs.promises.${name}`, category, irreversible, fsOp: op, target: "filesystem", describe: FS_DESCRIBE[name] },
+  { id: `fs.${name}`, module: "node:fs", path: [name], cls: "effect", api: `fs.${name}`, category, irreversible, fsOp: op, target: "filesystem", describe: FS_DESCRIBE[name] },
+  { id: `fs.${name}Sync`, module: "node:fs", path: [`${name}Sync`], cls: "effect", api: `fs.${name}Sync`, category, irreversible, fsOp: op, target: "filesystem", describe: FS_DESCRIBE[name] },
 ];
 
 export const API_RULES: ApiRule[] = [
@@ -51,16 +57,16 @@ export const API_RULES: ApiRule[] = [
 
   // --- processes -----------------------------------------------------------
   ...["exec", "execFile", "spawn", "execSync", "execFileSync", "spawnSync", "fork"].map(
-    (n): ApiRule => ({ id: `child_process.${n}`, module: "node:child_process", path: [n], cls: "effect", api: `child_process.${n}`, category: "process.exec", irreversible: "unknown", target: "shell" }),
+    (n): ApiRule => ({ id: `child_process.${n}`, module: "node:child_process", path: [n], cls: "effect", api: `child_process.${n}`, category: "process.exec", irreversible: "unknown", target: "shell", describe: "run a shell command" }),
   ),
 
   // --- network -------------------------------------------------------------
-  { id: "fetch", global: "fetch", path: [], cls: "effect", api: "fetch", category: "network", irreversible: "unknown" },
+  { id: "fetch", global: "fetch", path: [], cls: "effect", api: "fetch", category: "network", irreversible: "unknown", describe: "make an HTTP request" },
 
   // --- payments / messaging -----------------------------------------------
-  { id: "stripe.refunds.create", module: "stripe", path: ["default", "new", "refunds", "create"], cls: "effect", api: "stripe.refunds.create", category: "financial", irreversible: true, target: "Stripe API" },
-  { id: "stripe.charges.create", module: "stripe", path: ["default", "new", "charges", "create"], cls: "effect", api: "stripe.charges.create", category: "financial", irreversible: true, target: "Stripe API" },
-  { id: "nodemailer.sendMail", module: "nodemailer", path: ["default", "createTransport", "()", "sendMail"], cls: "effect", api: "nodemailer.sendMail", category: "messaging", irreversible: true, target: "SMTP" },
+  { id: "stripe.refunds.create", module: "stripe", path: ["default", "new", "refunds", "create"], cls: "effect", api: "stripe.refunds.create", category: "financial", irreversible: true, target: "Stripe API", describe: "refund money (Stripe)" },
+  { id: "stripe.charges.create", module: "stripe", path: ["default", "new", "charges", "create"], cls: "effect", api: "stripe.charges.create", category: "financial", irreversible: true, target: "Stripe API", describe: "charge money (Stripe)" },
+  { id: "nodemailer.sendMail", module: "nodemailer", path: ["default", "createTransport", "()", "sendMail"], cls: "effect", api: "nodemailer.sendMail", category: "messaging", irreversible: true, target: "SMTP", describe: "send an e-mail" },
 
   // --- databases (classified as state read/write by SQL verb) ---------------
   { id: "pg.Pool.query", module: "pg", path: ["Pool", "new", "query"], cls: "db", api: "pg.query", target: "postgres" },

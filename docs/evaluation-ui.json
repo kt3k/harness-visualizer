@@ -4,63 +4,63 @@
   "scenarios": [
     {
       "question": "1. Where does the LLM choose the next action?",
-      "view": "B",
-      "interactions": 2,
-      "ms": 2526,
-      "answer": "Decision boundary table: main model call → stop_reason branch, block.type filter, handler-map dispatch (model-selected)",
+      "view": "S",
+      "interactions": 1,
+      "ms": 1888,
+      "answer": "Step-by-step outline: the model is asked once per turn, may pick one of 7 tools; its reply decides tool use vs. final answer",
       "ok": true
     },
     {
       "question": "2. Which rules are enforced by code, which only in the prompt?",
-      "view": "C",
-      "interactions": 2,
-      "ms": 2282,
-      "answer": ".env rule is prompt-only; workspace rule possibly enforced by assertInsideWorkspace (inferred)",
+      "view": "S",
+      "interactions": 1,
+      "ms": 1544,
+      "answer": "Watch out lists prompt-only rules; the tool table shows prompt rules next to the code checks",
       "ok": true
     },
     {
       "question": "3. Can this model decision lead to a destructive effect, and through which guards?",
-      "view": "C",
-      "interactions": 4,
-      "ms": 3754,
-      "answer": "rm reachable via delete_file dispatch; gates: deny check, unknown-tool check, workspace assertion (+ conditional approval)",
+      "view": "S",
+      "interactions": 1,
+      "ms": 1532,
+      "answer": "delete_file → delete files; stopped by the workspace check, the permission policy (human OK), and the checks before any tool runs",
       "ok": true
     },
     {
       "question": "4. Which memory is visible to a particular model call?",
-      "view": "D",
-      "interactions": 2,
-      "ms": 2278,
-      "answer": "main call: system.md + memory file + compacted conversation; reviewer: reviewer.md + its own conversation only",
+      "view": "S",
+      "interactions": 1,
+      "ms": 1530,
+      "answer": "main call: system.md + memory file + conversation (may be summarized); reviewer: reviewer.md + its own conversation",
       "ok": true
     },
     {
       "question": "5. Why did this observed run terminate or retry?",
       "view": "E",
       "interactions": 5,
-      "ms": 4533,
-      "answer": "retry = transport retry loop in callModel (529 overloaded); termination = final.status 'blocked' after a malformed-output retry",
+      "ms": 4688,
+      "answer": "retry = transport retry loop in callModel (529 overloaded); termination = final status 'blocked' after a malformed-output retry",
       "ok": true
     },
     {
       "question": "6. If a prompt changes, which decisions and downstream effects may be affected?",
       "view": "F",
       "interactions": 3,
-      "ms": 2984,
-      "answer": "potential: main model call → its output branches/dispatch → all tool effects (labelled potential)",
+      "ms": 2972,
+      "answer": "direct: main model call → its output branches/dispatch → all tool effects (labelled potential); indirect impacts listed separately",
       "ok": true
     },
     {
       "question": "7. Which parts of the harness remain unknown or insufficiently analyzed?",
-      "view": "G",
-      "interactions": 2,
-      "ms": 2265,
-      "answer": "plugin tool (dynamic import + plugin.run), plus listed analysis gaps",
+      "view": "S",
+      "interactions": 1,
+      "ms": 1539,
+      "answer": "plugin tool loads and runs code at runtime; full list in the Unknowns & coverage tab",
       "ok": true
     }
   ],
   "smoke": {
-    "views": 35,
+    "views": 40,
     "failed": []
   },
   "runtimeErrors": []

@@ -11,7 +11,7 @@
     "analyzer": "harness-visualizer/ts-adapter",
     "analyzerVersion": "0.1.0",
     "adapter": "typescript",
-    "inputsHash": "9aee76ed1995a1d2f713bebbe63615a9e3eb457502c5c512dbb8a1e4965eb7cb",
+    "inputsHash": "a09c8f2aae42151fc9a02333e55ae333b0a881761ca4bc31a10dade1cfd47b26",
     "redaction": "standard"
   },
   "nodes": [
@@ -1211,11 +1211,7 @@
         "loopType": "agent",
         "condition": "",
         "infinite": true,
-        "constants": {
-          "MAX_TURNS": 40,
-          "RUN_TIMEOUT_MS": 900000,
-          "MAX_FORMAT_RETRIES": 2
-        },
+        "constants": {},
         "counter": "turn",
         "entryIds": [
           "junction:loop:src/agent.ts#runCodingAgent/1"
@@ -1253,11 +1249,7 @@
       "attrs": {
         "role": "loop-head",
         "condition": "",
-        "constants": {
-          "MAX_TURNS": 40,
-          "RUN_TIMEOUT_MS": 900000,
-          "MAX_FORMAT_RETRIES": 2
-        }
+        "constants": {}
       }
     },
     {
@@ -2462,7 +2454,7 @@
     {
       "id": "decision:src/final.ts#parseFinalAnswer/0",
       "kind": "Decision",
-      "label": "branch: (value.status === \"done\" || value.status === \"blocked\") && typeof value.summary === \"stri…",
+      "label": "branch: (value.status === \"done\" || value.status === \"blocked\") && typeof value.summary === \"string\"",
       "parent": "proc:src/final.ts#parseFinalAnswer",
       "summary": "Code decision on model-supplied data (threshold / predicate defined in code).",
       "authority": "code",
@@ -2488,7 +2480,7 @@
       },
       "uncertainties": [],
       "attrs": {
-        "condition": "(value.status === \"done\" || value.status === \"blocked\") && typeof value.summary === \"stri…",
+        "condition": "(value.status === \"done\" || value.status === \"blocked\") && typeof value.summary === \"string\"",
         "constants": {},
         "taintSources": [
           "model:modelcall:src/agent.ts#runCodingAgent/0"
@@ -2788,9 +2780,7 @@
         "loopType": "retry",
         "condition": "",
         "infinite": true,
-        "constants": {
-          "MAX_ATTEMPTS": 4
-        },
+        "constants": {},
         "counter": "attempt",
         "entryIds": [],
         "exitIds": []
@@ -2826,9 +2816,7 @@
       "attrs": {
         "role": "loop-head",
         "condition": "",
-        "constants": {
-          "MAX_ATTEMPTS": 4
-        }
+        "constants": {}
       }
     },
     {
@@ -3054,7 +3042,7 @@
     {
       "id": "decision:src/permissions.ts#authorize/0",
       "kind": "Decision",
-      "label": "branch: toolName === \"delete_file\" || (toolName === \"run_shell\" && /\\bgit\\s+push\\b/.test(input.co…",
+      "label": "branch: toolName === \"delete_file\" || (toolName === \"run_shell\" && /\\bgit\\s+push\\b/.test(input.command))",
       "parent": "proc:src/permissions.ts#authorize",
       "summary": "Code decision on model-supplied data (threshold / predicate defined in code).",
       "authority": "code",
@@ -3080,7 +3068,7 @@
       },
       "uncertainties": [],
       "attrs": {
-        "condition": "toolName === \"delete_file\" || (toolName === \"run_shell\" && /\\bgit\\s+push\\b/.test(input.co…",
+        "condition": "toolName === \"delete_file\" || (toolName === \"run_shell\" && /\\bgit\\s+push\\b/.test(input.command))",
         "outcomeText": "ask confirm ",
         "constants": {},
         "taintSources": [
@@ -3233,6 +3221,7 @@
       "uncertainties": [],
       "attrs": {
         "category": "fs.read",
+        "describe": "read a file",
         "irreversible": false,
         "api": "fs.promises.readFile",
         "target": "filesystem",
@@ -3318,6 +3307,7 @@
       "uncertainties": [],
       "attrs": {
         "category": "fs.write",
+        "describe": "write a file",
         "irreversible": "unknown",
         "api": "fs.promises.writeFile",
         "target": "filesystem",
@@ -3386,6 +3376,7 @@
       "uncertainties": [],
       "attrs": {
         "category": "fs.delete",
+        "describe": "delete files",
         "irreversible": true,
         "api": "fs.promises.rm",
         "target": "filesystem",
@@ -4189,6 +4180,7 @@
       "uncertainties": [],
       "attrs": {
         "category": "process.exec",
+        "describe": "run a shell command",
         "irreversible": "unknown",
         "api": "child_process.execFile",
         "target": "shell",
@@ -4640,7 +4632,7 @@
         {
           "basis": "inferred",
           "method": "heuristic:keyword-overlap",
-          "claim": "shares terms {git, shell} with decision:src/permissions.ts#authorize/0",
+          "claim": "shares terms {shell, git} with decision:src/permissions.ts#authorize/0",
           "ref": {
             "file": "src/permissions.ts",
             "startLine": 12,
@@ -4790,7 +4782,14 @@
           "claim": "call at src/agent.ts:14"
         }
       ],
-      "attrs": {}
+      "attrs": {
+        "sites": [
+          {
+            "file": "src/agent.ts",
+            "line": 14
+          }
+        ]
+      }
     },
     {
       "id": "transition:proc:src/memory.ts#loadMemory->junction:loop:src/agent.ts#runCodingAgent/0#return",
@@ -4894,7 +4893,14 @@
           "claim": "call at src/agent.ts:28"
         }
       ],
-      "attrs": {}
+      "attrs": {
+        "sites": [
+          {
+            "file": "src/agent.ts",
+            "line": 28
+          }
+        ]
+      }
     },
     {
       "id": "transition:proc:src/context.ts#compactHistory->memorywrite:src/agent.ts#runCodingAgent/3#return",
@@ -5039,7 +5045,14 @@
           "claim": "call at src/agent.ts:37"
         }
       ],
-      "attrs": {}
+      "attrs": {
+        "sites": [
+          {
+            "file": "src/agent.ts",
+            "line": 37
+          }
+        ]
+      }
     },
     {
       "id": "transition:proc:src/permissions.ts#authorize->authorization:src/agent.ts#runCodingAgent/0#return",
@@ -5098,7 +5111,14 @@
           "claim": "call at src/agent.ts:43"
         }
       ],
-      "attrs": {}
+      "attrs": {
+        "sites": [
+          {
+            "file": "src/agent.ts",
+            "line": 43
+          }
+        ]
+      }
     },
     {
       "id": "transition:proc:src/approval.ts#askHumanApproval->authorization:src/agent.ts#runCodingAgent/1#return",
@@ -5204,7 +5224,14 @@
           "claim": "call at src/agent.ts:56"
         }
       ],
-      "attrs": {}
+      "attrs": {
+        "sites": [
+          {
+            "file": "src/agent.ts",
+            "line": 56
+          }
+        ]
+      }
     },
     {
       "id": "dispatches:toolrequest:src/agent.ts#runCodingAgent/0->tool:src/tools/index.ts#CODING_TOOLS.write_file#write_file",
@@ -5250,7 +5277,14 @@
           "claim": "call at src/agent.ts:56"
         }
       ],
-      "attrs": {}
+      "attrs": {
+        "sites": [
+          {
+            "file": "src/agent.ts",
+            "line": 56
+          }
+        ]
+      }
     },
     {
       "id": "dispatches:toolrequest:src/agent.ts#runCodingAgent/0->tool:src/tools/index.ts#CODING_TOOLS.delete_file#delete_file",
@@ -5296,7 +5330,14 @@
           "claim": "call at src/agent.ts:56"
         }
       ],
-      "attrs": {}
+      "attrs": {
+        "sites": [
+          {
+            "file": "src/agent.ts",
+            "line": 56
+          }
+        ]
+      }
     },
     {
       "id": "dispatches:toolrequest:src/agent.ts#runCodingAgent/0->tool:src/tools/index.ts#CODING_TOOLS.run_shell#run_shell",
@@ -5342,7 +5383,14 @@
           "claim": "call at src/agent.ts:56"
         }
       ],
-      "attrs": {}
+      "attrs": {
+        "sites": [
+          {
+            "file": "src/agent.ts",
+            "line": 56
+          }
+        ]
+      }
     },
     {
       "id": "dispatches:toolrequest:src/agent.ts#runCodingAgent/0->tool:src/tools/index.ts#CODING_TOOLS.delegate_review#delegate_review",
@@ -5388,7 +5436,14 @@
           "claim": "call at src/agent.ts:56"
         }
       ],
-      "attrs": {}
+      "attrs": {
+        "sites": [
+          {
+            "file": "src/agent.ts",
+            "line": 56
+          }
+        ]
+      }
     },
     {
       "id": "dispatches:toolrequest:src/agent.ts#runCodingAgent/0->tool:src/tools/index.ts#CODING_TOOLS.remember#remember",
@@ -5434,7 +5489,14 @@
           "claim": "call at src/agent.ts:56"
         }
       ],
-      "attrs": {}
+      "attrs": {
+        "sites": [
+          {
+            "file": "src/agent.ts",
+            "line": 56
+          }
+        ]
+      }
     },
     {
       "id": "dispatches:toolrequest:src/agent.ts#runCodingAgent/0->tool:src/tools/index.ts#CODING_TOOLS.plugin#plugin",
@@ -5480,7 +5542,14 @@
           "claim": "call at src/agent.ts:56"
         }
       ],
-      "attrs": {}
+      "attrs": {
+        "sites": [
+          {
+            "file": "src/agent.ts",
+            "line": 56
+          }
+        ]
+      }
     },
     {
       "id": "transition:tool:src/tools/index.ts#CODING_TOOLS.read_file->junction:loop:src/agent.ts#runCodingAgent/1#next iteration",
@@ -5626,11 +5695,11 @@
       }
     },
     {
-      "id": "transition:decision:src/agent.ts#runCodingAgent/1->junction:loop:src/agent.ts#runCodingAgent/1#next iteration",
+      "id": "transition:decision:src/agent.ts#runCodingAgent/1->junction:loop:src/agent.ts#runCodingAgent/1#if block.type !== \"tool_use\"",
       "kind": "transition",
       "from": "decision:src/agent.ts#runCodingAgent/1",
       "to": "junction:loop:src/agent.ts#runCodingAgent/1",
-      "label": "next iteration",
+      "label": "if block.type !== \"tool_use\"",
       "evidence": [
         {
           "basis": "static",
@@ -5643,11 +5712,11 @@
       }
     },
     {
-      "id": "transition:authorization:src/agent.ts#runCodingAgent/0->junction:loop:src/agent.ts#runCodingAgent/1#next iteration",
+      "id": "transition:authorization:src/agent.ts#runCodingAgent/0->junction:loop:src/agent.ts#runCodingAgent/1#reject: decision.kind === \"deny\"",
       "kind": "transition",
       "from": "authorization:src/agent.ts#runCodingAgent/0",
       "to": "junction:loop:src/agent.ts#runCodingAgent/1",
-      "label": "next iteration",
+      "label": "reject: decision.kind === \"deny\"",
       "evidence": [
         {
           "basis": "static",
@@ -5660,11 +5729,11 @@
       }
     },
     {
-      "id": "transition:authorization:src/agent.ts#runCodingAgent/1->junction:loop:src/agent.ts#runCodingAgent/1#next iteration",
+      "id": "transition:authorization:src/agent.ts#runCodingAgent/1->junction:loop:src/agent.ts#runCodingAgent/1#reject: !approved",
       "kind": "transition",
       "from": "authorization:src/agent.ts#runCodingAgent/1",
       "to": "junction:loop:src/agent.ts#runCodingAgent/1",
-      "label": "next iteration",
+      "label": "reject: !approved",
       "evidence": [
         {
           "basis": "static",
@@ -5677,11 +5746,11 @@
       }
     },
     {
-      "id": "transition:guard:src/agent.ts#runCodingAgent/2->junction:loop:src/agent.ts#runCodingAgent/1#next iteration",
+      "id": "transition:guard:src/agent.ts#runCodingAgent/2->junction:loop:src/agent.ts#runCodingAgent/1#reject: !handler",
       "kind": "transition",
       "from": "guard:src/agent.ts#runCodingAgent/2",
       "to": "junction:loop:src/agent.ts#runCodingAgent/1",
-      "label": "next iteration",
+      "label": "reject: !handler",
       "evidence": [
         {
           "basis": "static",
@@ -5737,7 +5806,14 @@
           "claim": "call at src/agent.ts:66"
         }
       ],
-      "attrs": {}
+      "attrs": {
+        "sites": [
+          {
+            "file": "src/agent.ts",
+            "line": 66
+          }
+        ]
+      }
     },
     {
       "id": "transition:proc:src/final.ts#parseFinalAnswer->decision:src/agent.ts#runCodingAgent/3#return",
@@ -5860,7 +5936,14 @@
           "claim": "call at src/context.ts:18"
         }
       ],
-      "attrs": {}
+      "attrs": {
+        "sites": [
+          {
+            "file": "src/context.ts",
+            "line": 18
+          }
+        ]
+      }
     },
     {
       "id": "transition:proc:src/context.ts#estimateTokens->decision:src/context.ts#compactHistory/0#return",
@@ -5923,11 +6006,11 @@
       "attrs": {}
     },
     {
-      "id": "transition:decision:src/final.ts#parseFinalAnswer/0->junction:src/final.ts#parseFinalAnswer/0#if (value.status === \"done\" || value.status === \"blocked\") && typeof value.summary === \"stri…",
+      "id": "transition:decision:src/final.ts#parseFinalAnswer/0->junction:src/final.ts#parseFinalAnswer/0#if (value.status === \"done\" || value.status === \"blocked\") && typeof value.summary === \"string\"",
       "kind": "transition",
       "from": "decision:src/final.ts#parseFinalAnswer/0",
       "to": "junction:src/final.ts#parseFinalAnswer/0",
-      "label": "if (value.status === \"done\" || value.status === \"blocked\") && typeof value.summary === \"stri…",
+      "label": "if (value.status === \"done\" || value.status === \"blocked\") && typeof value.summary === \"string\"",
       "evidence": [
         {
           "basis": "static",
@@ -5964,7 +6047,14 @@
           "claim": "call at src/main.ts:6"
         }
       ],
-      "attrs": {}
+      "attrs": {
+        "sites": [
+          {
+            "file": "src/main.ts",
+            "line": 6
+          }
+        ]
+      }
     },
     {
       "id": "transition:memoryread:src/memory.ts#loadMemory/0->junction:src/memory.ts#loadMemory/0",
@@ -6102,11 +6192,11 @@
       "attrs": {}
     },
     {
-      "id": "transition:decision:src/permissions.ts#authorize/0->junction:src/permissions.ts#authorize/1#if toolName === \"delete_file\" || (toolName === \"run_shell\" && /\\bgit\\s+push\\b/.test(input.co…",
+      "id": "transition:decision:src/permissions.ts#authorize/0->junction:src/permissions.ts#authorize/1#if toolName === \"delete_file\" || (toolName === \"run_shell\" && /\\bgit\\s+push\\b/.test(input.command))",
       "kind": "transition",
       "from": "decision:src/permissions.ts#authorize/0",
       "to": "junction:src/permissions.ts#authorize/1",
-      "label": "if toolName === \"delete_file\" || (toolName === \"run_shell\" && /\\bgit\\s+push\\b/.test(input.co…",
+      "label": "if toolName === \"delete_file\" || (toolName === \"run_shell\" && /\\bgit\\s+push\\b/.test(input.command))",
       "evidence": [
         {
           "basis": "static",
@@ -6143,7 +6233,14 @@
           "claim": "call at src/tools/fs.ts:16"
         }
       ],
-      "attrs": {}
+      "attrs": {
+        "sites": [
+          {
+            "file": "src/tools/fs.ts",
+            "line": 16
+          }
+        ]
+      }
     },
     {
       "id": "transition:proc:src/tools/fs.ts#assertInsideWorkspace->effect:src/tools/fs.ts#readFileTool/0#return",
@@ -6172,7 +6269,14 @@
           "claim": "call at src/tools/fs.ts:21"
         }
       ],
-      "attrs": {}
+      "attrs": {
+        "sites": [
+          {
+            "file": "src/tools/fs.ts",
+            "line": 21
+          }
+        ]
+      }
     },
     {
       "id": "transition:proc:src/tools/fs.ts#assertInsideWorkspace->effect:src/tools/fs.ts#writeFileTool/0#return",
@@ -6201,7 +6305,14 @@
           "claim": "call at src/tools/fs.ts:27"
         }
       ],
-      "attrs": {}
+      "attrs": {
+        "sites": [
+          {
+            "file": "src/tools/fs.ts",
+            "line": 27
+          }
+        ]
+      }
     },
     {
       "id": "transition:proc:src/tools/fs.ts#assertInsideWorkspace->effect:src/tools/fs.ts#deleteFileTool/0#return",
@@ -6230,7 +6341,14 @@
           "claim": "call at src/tools/index.ts:25"
         }
       ],
-      "attrs": {}
+      "attrs": {
+        "sites": [
+          {
+            "file": "src/tools/index.ts",
+            "line": 25
+          }
+        ]
+      }
     },
     {
       "id": "transition:unknown:src/tools/plugins.ts#runPluginTool/0->unknown:src/tools/plugins.ts#runPluginTool/1",
@@ -6393,7 +6511,14 @@
           "claim": "call at src/tools/review.ts:24"
         }
       ],
-      "attrs": {}
+      "attrs": {
+        "sites": [
+          {
+            "file": "src/tools/review.ts",
+            "line": 24
+          }
+        ]
+      }
     },
     {
       "id": "transition:tool:src/tools/index.ts#CODING_TOOLS.read_file->junction:loop:src/tools/review.ts#runReviewer/1#next iteration",
@@ -6524,7 +6649,14 @@
           "claim": "call at src/tools/review.ts:36"
         }
       ],
-      "attrs": {}
+      "attrs": {
+        "sites": [
+          {
+            "file": "src/tools/review.ts",
+            "line": 36
+          }
+        ]
+      }
     },
     {
       "id": "invokes:tool:src/tools/index.ts#CODING_TOOLS.run_shell->proc:src/tools/shell.ts#isAllowedCommand",
@@ -6538,7 +6670,14 @@
           "claim": "call at src/tools/shell.ts:14"
         }
       ],
-      "attrs": {}
+      "attrs": {
+        "sites": [
+          {
+            "file": "src/tools/shell.ts",
+            "line": 14
+          }
+        ]
+      }
     },
     {
       "id": "transition:proc:src/tools/shell.ts#isAllowedCommand->authorization:src/tools/shell.ts#runShellTool/0#return",
@@ -7605,14 +7744,14 @@
         {
           "basis": "inferred",
           "method": "heuristic:keyword-overlap",
-          "claim": "shared terms: git, shell",
+          "claim": "shared terms: shell, git",
           "confidence": 0.5
         }
       ],
       "attrs": {
         "hits": [
-          "git",
-          "shell"
+          "shell",
+          "git"
         ]
       }
     },

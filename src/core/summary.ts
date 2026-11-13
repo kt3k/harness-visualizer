@@ -2,6 +2,7 @@
 import { IRIndex } from "./graph";
 import type { ContextLayer, HarnessIR, IRNode, RedactionLevel } from "./ir";
 import { redact, redactPromptBody } from "./redact";
+import { storyMarkdown } from "./story";
 
 const ref = (n: IRNode) => (n.sourceRefs[0] ? `\`${n.sourceRefs[0].file}:${n.sourceRefs[0].startLine}\`` : "(no source)");
 
@@ -10,7 +11,8 @@ export function markdownSummary(ir: HarnessIR, opts: { redaction?: RedactionLeve
   const idx = new IRIndex(ir);
   const by = (k: string) => ir.nodes.filter((n) => n.kind === k);
   const L: string[] = [];
-  L.push(`# ${ir.harness.name}`, "");
+  L.push(storyMarkdown(ir, { redaction: level }).trimEnd(), "", "---", "", "# Technical details", "");
+  L.push(`## ${ir.harness.name}`, "");
   if (ir.harness.synthetic) L.push("> **Synthetic fixture** — not a production harness.", "");
   if (ir.harness.description) L.push(redact(ir.harness.description), "");
   L.push(`IR ${ir.irVersion} · analyzer ${ir.analysis.analyzerVersion} · inputs ${ir.analysis.inputsHash.slice(0, 12)} · redaction: ${level}`, "");
