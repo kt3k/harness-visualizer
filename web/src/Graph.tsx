@@ -2,6 +2,8 @@ import ELK from "elkjs/lib/elk.bundled.js";
 import { useEffect, useMemo, useRef, useState, type KeyboardEvent, type PointerEvent, type WheelEvent } from "react";
 import type { VisEdge, VisNode } from "./viewmodel";
 import { authorityOf } from "./viewmodel";
+import { edgeOutcome } from "../../src/core/humanize";
+import { useEvidenceMode } from "./Evidence";
 
 const elk = new ELK();
 
@@ -47,6 +49,7 @@ function leafSize(v: VisNode): { w: number; h: number } {
 export function Graph(p: Props) {
   const [layout, setLayout] = useState<{ boxes: Box[]; lines: Line[]; w: number; h: number } | null>(null);
   const [tf, setTf] = useState({ k: 1, x: 0, y: 0 });
+  const [evidenceMode] = useEvidenceMode();
   const [err, setErr] = useState<string | null>(null);
   const wrap = useRef<HTMLDivElement>(null);
   const drag = useRef<{ x: number; y: number; tx: number; ty: number } | null>(null);
@@ -305,7 +308,7 @@ export function Graph(p: Props) {
                 <rect x={b.x} y={b.y} width={b.w} height={26} rx={8} className="chead-bg" />
                 <text x={b.x + 10} y={b.y + 17} className="ctitle">▾ {kindTag(b.vis.node.kind)} {clip(b.vis.label, Math.max(10, Math.floor(b.w / 7) - 6))}</text>
               </g>
-              <title>{`${b.vis.node.kind}: ${b.vis.node.label} — click header to collapse`}</title>
+              <title>{b.vis.label}</title>
             </g>
           ))}
           {layout?.lines.map((l) => {
@@ -314,17 +317,17 @@ export function Graph(p: Props) {
             const dim = dimming && !on && !(hl?.has(l.e.from) && hl?.has(l.e.to));
             const mid = l.pts[Math.floor(l.pts.length / 2)];
             const prev = l.pts[Math.floor(l.pts.length / 2) - 1] ?? mid;
-            const showLabel = l.e.labels.length > 0 && (l.e.kind === "dispatches" || l.e.kind === "gates" || /^(if |reject|pass|else|case |tool = |exit|default|no |other|fork|throws)/.test(l.e.labels[0]));
+            const outcome = l.e.kind === "dispatches" ? l.e.labels[0] : edgeOutcome(l.e.labels[0]);
+            const showLabel = !!outcome && l.e.kind !== "gates" && (l.e.kind === "dispatches" || /^(if |reject|pass|else|case |tool = |exit|default|no |other|fork|throws)/.test(l.e.labels[0]));
             return (
               <g key={l.e.id} className={`edge ek-${l.e.kind} ${l.e.back ? "back" : ""} ${l.e.inferred ? "inferred" : ""} ${on ? "on" : ""} ${dim ? "dim" : ""}`}>
                 <path d={d} markerEnd={`url(#arrow-${on ? "hl" : l.e.kind})`} />
                 {showLabel && (
                   <text x={(mid.x + prev.x) / 2 + 3} y={(mid.y + prev.y) / 2 - 3} className="elabel">
-                    {truncate(l.e.labels[0], 30)}
-                    {l.e.count > 1 && l.e.labels.length > 1 ? ` +${l.e.labels.length - 1}` : ""}
+                    {truncate(outcome ?? "", 24)}
                   </text>
                 )}
-                <title>{`${l.e.kind}${l.e.inferred ? " (inferred)" : ""}: ${l.e.labels.join(" | ") || ""} ×${l.e.count}`}</title>
+                {evidenceMode && <title>{`${l.e.kind}${l.e.inferred ? " (inferred)" : ""}: ${l.e.labels.join(" | ") || ""} ×${l.e.count}`}</title>}
               </g>
             );
           })}
@@ -362,7 +365,7 @@ export function Graph(p: Props) {
                     <text x={b.x + b.w - 4} y={b.y + b.h + 1.5} textAnchor="middle">{obs > 99 ? "99+" : obs}</text>
                   </g>
                 )}
-                <title>{`${b.vis.label}\n— ${n.kind} · ${authorityOf(n)}${n.assurance.enforcement ? ` · ${n.assurance.enforcement}` : ""} · ${n.assurance.basis}\ncode: ${n.label}${b.vis.container ? "\n(double-click to expand)" : ""}`}</title>
+                <title>{evidenceMode ? `${b.vis.label}\n— ${n.kind} · ${authorityOf(n)}${n.assurance.enforcement ? ` · ${n.assurance.enforcement}` : ""} · ${n.assurance.basis}\ncode: ${n.label}` : b.vis.label}</title>
               </g>
             );
           })}

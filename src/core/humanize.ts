@@ -191,7 +191,7 @@ export function nodePhrase(n: IRNode, ir?: HarnessIR): Phrase {
       const store = String(a.store ?? "");
       const loc = String(ir?.nodes.find((x) => x.id === store)?.attrs.locator ?? "");
       if (store.startsWith("state:db:")) return { text: `${n.kind === "MemoryRead" ? "read" : "write"} database table ${store.slice(9)}` };
-      if (store.startsWith("state:file:")) return { text: `${n.kind === "MemoryRead" ? "read" : "save to"} ${loc.includes("=") ? loc.split("=")[1].trim().replace(/"/g, "") : store.slice(11)}` };
+      if (store.startsWith("state:file:")) return { text: `${n.kind === "MemoryRead" ? "read" : "save to"} the ${loc.includes("=") ? words(loc.split("=")[0].trim()) : "state file"}` };
       if (a.op === "replace") return { text: "replace the conversation history" };
       return { text: "add to the conversation" };
     }
@@ -208,13 +208,13 @@ export function nodePhrase(n: IRNode, ir?: HarnessIR): Phrase {
     case "ToolRequest":
       return { text: "run the tool the model picked" };
     case "HumanApproval":
-      return { text: a.mode === "indirect" ? "queue the request for a human to approve later" : "ask a human for approval" };
+      return { text: a.mode === "indirect" ? "likely hands the request to a human to approve later" : "ask a human for approval" };
     case "Termination":
       return { text: `finish: ${terminationPhrase(n)}` };
     case "Unknown":
       return { text: `unknown behavior: ${String(a.reason ?? "")}` };
     case "ExternalEvent":
-      return { text: a.trigger === "webhook" ? `when ${words(n.label.replace(/^webhook\s+/, "").replace(/\(.*$/, "")).replace(/^on /, "")} arrives (webhook)` : `when ${n.label.replace(/^entry\s+/, "")} is called` };
+      return { text: a.trigger === "webhook" ? `when a “${words(n.label.replace(/^webhook\s+/, "").replace(/\(.*$/, "")).replace(/^on /, "")}” event arrives from outside (likely a webhook)` : "started by an outside caller" };
     case "Agent":
     case "Procedure":
       return { text: containerTitle(n) };
@@ -223,7 +223,7 @@ export function nodePhrase(n: IRNode, ir?: HarnessIR): Phrase {
     case "Junction":
       return { text: n.attrs.role === "loop-head" ? "repeat" : n.label, code: n.attrs.role !== "loop-head" };
     case "Prompt":
-      return { text: n.label.replace(/^prompt (file )?/, "prompt ") };
+      return { text: promptName(n) };
     case "PromptRule":
       return { text: `prompt says: “${a.text}”` };
     case "State":
@@ -260,14 +260,14 @@ export function loopPhrase(n: IRNode): string {
     if (/tool_calls|content/.test(what)) return "for each tool request in the model's reply";
     return `for each item of ${what || "a collection"}`;
   }
-  if (a.loopType === "retry") return "retry on failure";
+  if (a.loopType === "retry") return "likely retries on failure";
   return bounds.length ? `repeat (up to ${bounds.join(", ")})` : "repeat until a stop condition below";
 }
 
 export function terminationPhrase(n: IRNode): string {
   const r = String(n.attrs.reason ?? "");
-  if (/^[a-z]+(_[a-z]+)+$/.test(r) || /^[a-z]+$/.test(r)) return words(r);
-  if (/^[\w.]+$/.test(r)) return `returns ${r}`;
+  if (/^[a-z]+(_[a-z]+)+$/.test(r) || (/^[a-z]+$/.test(r) && r.length > 3 && !/^(ok|result|value|out\w*|res\w*|data)$/i.test(r))) return words(r);
+  if (/^[\w.]+$/.test(r)) return "returns the result";
   if (/[(){}`[\]?]/.test(r)) return "returns the result";
   return `“${r}”`;
 }
@@ -289,14 +289,45 @@ export function contextSummary(n: IRNode, ir: HarnessIR): string[] {
   const out: string[] = [];
   for (const c of ctx) {
     const ref = c.ref ? ir.nodes.find((x) => x.id === c.ref) : undefined;
-    if (c.kind === "prompt" && ref) out.push(`instructions: ${ref.label.replace(/^prompt (file )?/, "")}`);
+    if (c.kind === "prompt" && ref) out.push(promptName(ref));
     else if (c.kind === "memory" && ref) out.push(nodePhrase(ref, ir).text.replace(/^read /, ""));
     else if (c.kind === "conversation") out.push(c.transforms.some((t) => /summar/.test(t)) ? "the conversation so far (older turns may be summarized)" : "the conversation so far");
-    else if (c.kind === "input") out.push(`the caller's input (${c.expr.split(" ")[0]})`);
+    else if (c.kind === "input") out.push("the caller's input");
     else if (c.kind === "model-output") out.push("output of an earlier model call / agent");
     else if (c.kind === "tool-definitions") {
       /* listed separately */
-    } else if (c.certainty !== "resolved") out.push(`something unresolved (${c.expr})`);
+    } else if (c.certainty !== "resolved") out.push("possibly more that could not be traced");
   }
   return [...new Set(out)];
+}
+
+/** "prompts/system.md" → "the system instructions"; ROUTER_PROMPT → "the router instructions" */
+export function promptName(p: IRNode): string {
+  const a = p.attrs as Record<string, any>;
+  if (a.origin === "file") return `the ${words(String(a.file).split("/").pop()!.replace(/\.\w+$/, ""))} instructions`;
+  if (a.origin === "const") return `the ${words(String(p.label).replace(/^prompt\s+/, "").replace(/_?PROMPT$/, "")) || "system"} instructions`;
+  const t = String(a.text ?? "").replace(/\$\{…\}/g, "").trim();
+  return t ? `instructions (“${firstSentence(t, 50)}”)` : "inline instructions";
+}
+
+/** Plain wording for a branch/transition label (e.g. "if x === 1" → "yes", "reject: …" → "rejected"). */
+export function edgeOutcome(label?: string): string | undefined {
+  if (!label) return undefined;
+  if (label.startsWith("if ")) return "yes";
+  if (label === "else") return "no";
+  if (label.startsWith("reject")) return "rejected";
+  if (label === "pass") return "passes";
+  if (label.startsWith("case ")) return `“${label.slice(5)}”`;
+  if (label === "default") return "anything else";
+  if (label.startsWith("tool = ")) return label.slice(7);
+  if (label.startsWith("exit")) return "loop ends";
+  if (label.startsWith("iterate")) return "each round";
+  if (label.startsWith("next iteration")) return "next round";
+  if (label.startsWith("throws") || label === "throw") return "on error";
+  if (label.startsWith("fork")) return "in parallel";
+  if (label.startsWith("join")) return "when all finish";
+  if (label === "no case matched" || label === "no matching tool" || label === "other tool name") return "no match";
+  if (label === "call" || label === "return" || label === "invoke" || label === "enter") return undefined;
+  if (/analysed route/.test(label)) return undefined;
+  return label;
 }

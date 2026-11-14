@@ -6,7 +6,7 @@
       "question": "1. Where does the LLM choose the next action?",
       "view": "S",
       "interactions": 1,
-      "ms": 1768,
+      "ms": 1764,
       "answer": "Step-by-step outline: the model is asked once per turn, may pick one of 7 tools; its reply decides tool use vs. final answer",
       "ok": true
     },
@@ -14,7 +14,7 @@
       "question": "2. Which rules are enforced by code, which only in the prompt?",
       "view": "S",
       "interactions": 1,
-      "ms": 1545,
+      "ms": 1548,
       "answer": "Watch out lists prompt-only rules; the tool table shows prompt rules next to the code checks",
       "ok": true
     },
@@ -22,7 +22,7 @@
       "question": "3. Can this model decision lead to a destructive effect, and through which guards?",
       "view": "S",
       "interactions": 1,
-      "ms": 1546,
+      "ms": 1551,
       "answer": "delete_file → delete files; stopped by the workspace check, the permission policy (human OK), and the checks before any tool runs",
       "ok": true
     },
@@ -30,15 +30,15 @@
       "question": "4. Which memory is visible to a particular model call?",
       "view": "S",
       "interactions": 1,
-      "ms": 1528,
+      "ms": 1546,
       "answer": "main call: system.md + memory file + conversation (may be summarized); reviewer: reviewer.md + its own conversation",
       "ok": true
     },
     {
       "question": "5. Why did this observed run terminate or retry?",
       "view": "E",
-      "interactions": 5,
-      "ms": 4669,
+      "interactions": 6,
+      "ms": 5401,
       "answer": "retry = transport retry loop in callModel (529 overloaded); termination = final status 'blocked' after a malformed-output retry",
       "ok": true
     },
@@ -46,7 +46,7 @@
       "question": "6. If a prompt changes, which decisions and downstream effects may be affected?",
       "view": "F",
       "interactions": 3,
-      "ms": 2973,
+      "ms": 2975,
       "answer": "direct: main model call → its output branches/dispatch → all tool effects (labelled potential); indirect impacts listed separately",
       "ok": true
     },
@@ -54,7 +54,7 @@
       "question": "7. Which parts of the harness remain unknown or insufficiently analyzed?",
       "view": "S",
       "interactions": 1,
-      "ms": 1522,
+      "ms": 1538,
       "answer": "plugin tool loads and runs code at runtime; full list in the Unknowns & coverage tab",
       "ok": true
     }
@@ -66,49 +66,49 @@
   "mobile": [
     {
       "view": "story",
-      "viewH": 4656,
+      "viewH": 4786,
       "headerH": 70,
       "overflowX": false,
       "ok": true
     },
     {
       "view": "overview",
-      "viewH": 1051,
+      "viewH": 457,
       "headerH": 70,
       "overflowX": false,
       "ok": true
     },
     {
       "view": "decisions",
-      "viewH": 1588,
+      "viewH": 457,
       "headerH": 70,
       "overflowX": false,
       "ok": true
     },
     {
       "view": "effects",
-      "viewH": 1959,
+      "viewH": 457,
       "headerH": 70,
       "overflowX": false,
       "ok": true
     },
     {
       "view": "memory",
-      "viewH": 1526,
+      "viewH": 457,
       "headerH": 70,
       "overflowX": false,
       "ok": true
     },
     {
       "view": "trace",
-      "viewH": 2076,
+      "viewH": 917,
       "headerH": 70,
       "overflowX": false,
       "ok": true
     },
     {
       "view": "impact",
-      "viewH": 627,
+      "viewH": 573,
       "headerH": 70,
       "overflowX": false,
       "ok": true
@@ -122,6 +122,228 @@
     },
     {
       "view": "story: tap opens details sheet, close hides it",
+      "ok": true
+    }
+  ],
+  "level0": [
+    {
+      "harness": "simple-tool-loop",
+      "view": "story",
+      "chips": 0,
+      "badges": 0,
+      "detail": false,
+      "hit": null,
+      "ok": true
+    },
+    {
+      "harness": "simple-tool-loop",
+      "view": "decisions",
+      "chips": 0,
+      "badges": 0,
+      "detail": false,
+      "hit": null,
+      "ok": true
+    },
+    {
+      "harness": "simple-tool-loop",
+      "view": "effects",
+      "chips": 0,
+      "badges": 0,
+      "detail": false,
+      "hit": null,
+      "ok": true
+    },
+    {
+      "harness": "simple-tool-loop",
+      "view": "memory",
+      "chips": 0,
+      "badges": 0,
+      "detail": false,
+      "hit": null,
+      "ok": true
+    },
+    {
+      "harness": "simple-tool-loop",
+      "view": "trace",
+      "chips": 0,
+      "badges": 0,
+      "detail": false,
+      "hit": null,
+      "ok": true
+    },
+    {
+      "harness": "simple-tool-loop",
+      "view": "impact",
+      "chips": 0,
+      "badges": 0,
+      "detail": false,
+      "hit": null,
+      "ok": true
+    },
+    {
+      "harness": "coding-agent",
+      "view": "story",
+      "chips": 0,
+      "badges": 0,
+      "detail": false,
+      "hit": null,
+      "ok": true
+    },
+    {
+      "harness": "coding-agent",
+      "view": "decisions",
+      "chips": 0,
+      "badges": 0,
+      "detail": false,
+      "hit": null,
+      "ok": true
+    },
+    {
+      "harness": "coding-agent",
+      "view": "effects",
+      "chips": 0,
+      "badges": 0,
+      "detail": false,
+      "hit": null,
+      "ok": true
+    },
+    {
+      "harness": "coding-agent",
+      "view": "memory",
+      "chips": 0,
+      "badges": 0,
+      "detail": false,
+      "hit": null,
+      "ok": true
+    },
+    {
+      "harness": "coding-agent",
+      "view": "trace",
+      "chips": 0,
+      "badges": 0,
+      "detail": false,
+      "hit": null,
+      "ok": true
+    },
+    {
+      "harness": "coding-agent",
+      "view": "impact",
+      "chips": 0,
+      "badges": 0,
+      "detail": false,
+      "hit": null,
+      "ok": true
+    },
+    {
+      "harness": "support-refund-agent",
+      "view": "story",
+      "chips": 0,
+      "badges": 0,
+      "detail": false,
+      "hit": null,
+      "ok": true
+    },
+    {
+      "harness": "support-refund-agent",
+      "view": "decisions",
+      "chips": 0,
+      "badges": 0,
+      "detail": false,
+      "hit": null,
+      "ok": true
+    },
+    {
+      "harness": "support-refund-agent",
+      "view": "effects",
+      "chips": 0,
+      "badges": 0,
+      "detail": false,
+      "hit": null,
+      "ok": true
+    },
+    {
+      "harness": "support-refund-agent",
+      "view": "memory",
+      "chips": 0,
+      "badges": 0,
+      "detail": false,
+      "hit": null,
+      "ok": true
+    },
+    {
+      "harness": "support-refund-agent",
+      "view": "trace",
+      "chips": 0,
+      "badges": 0,
+      "detail": false,
+      "hit": null,
+      "ok": true
+    },
+    {
+      "harness": "support-refund-agent",
+      "view": "impact",
+      "chips": 0,
+      "badges": 0,
+      "detail": false,
+      "hit": null,
+      "ok": true
+    },
+    {
+      "harness": "research-orchestrator",
+      "view": "story",
+      "chips": 0,
+      "badges": 0,
+      "detail": false,
+      "hit": null,
+      "ok": true
+    },
+    {
+      "harness": "research-orchestrator",
+      "view": "decisions",
+      "chips": 0,
+      "badges": 0,
+      "detail": false,
+      "hit": null,
+      "ok": true
+    },
+    {
+      "harness": "research-orchestrator",
+      "view": "effects",
+      "chips": 0,
+      "badges": 0,
+      "detail": false,
+      "hit": null,
+      "ok": true
+    },
+    {
+      "harness": "research-orchestrator",
+      "view": "memory",
+      "chips": 0,
+      "badges": 0,
+      "detail": false,
+      "hit": null,
+      "ok": true
+    },
+    {
+      "harness": "research-orchestrator",
+      "view": "trace",
+      "chips": 0,
+      "badges": 0,
+      "detail": false,
+      "hit": null,
+      "ok": true
+    },
+    {
+      "harness": "research-orchestrator",
+      "view": "impact",
+      "chips": 0,
+      "badges": 0,
+      "detail": false,
+      "hit": null,
+      "ok": true
+    },
+    {
+      "view": "why? reveals evidence on request",
       "ok": true
     }
   ],

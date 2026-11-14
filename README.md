@@ -76,8 +76,10 @@ calls are reported as `Unknown`, never dropped.
 | **F Change impact** | potential direct/indirect impact of a prompt, guard or `file:line`; IR diff and before/after behavior between versions |
 | **G Unknowns & coverage** | unresolved items, gaps, inferred claims, metrics |
 
-Graphs use plain-language labels and hide implementation details by default (toggles in
-the graph toolbar). Click a node for its purpose, decision authority, inputs/outputs, gates, reachable effects,
+By default the UI shows only answers. Click a line or node for details; press **why?** (or
+open **Evidence** in the details, or switch **Evidence: on** in the header) to see the source
+location, how certain the statement is and why. Graphs use plain-language labels and hide
+implementation details by default (toggles in the graph toolbar). Click a node for its purpose, decision authority, inputs/outputs, gates, reachable effects,
 source (built-in viewer + GitHub link), evidence and uncertainties. Double-click / Enter
 expands containers. Keyboard: Alt+S / Alt+A…G views, arrows move, +/− zoom, `/` search, `?` legend.
 

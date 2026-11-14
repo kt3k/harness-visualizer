@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import type { ViewProps } from "../App";
 import { impactOf, seedsFor } from "../../../src/core/impact";
-import { NodeLink, Chip } from "../Detail";
+import { NodeLink, Chip, plainLabel } from "../Detail";
 import { LensGraph, Split } from "./common";
 import type { HL } from "../Graph";
 
@@ -24,7 +24,7 @@ export function ImpactView({ b, route, select, go }: ViewProps) {
           <select value={seeds.length === 1 ? seeds[0] : ""} onChange={(e) => go({ seed: e.target.value || undefined, node: e.target.value || undefined })}>
             <option value="">— pick a prompt, rule, guard, decision… —</option>
             {candidates.map((n) => (
-              <option key={n.id} value={n.id}>{n.kind}: {n.label.slice(0, 70)}</option>
+              <option key={n.id} value={n.id}>{plainLabel(b, n).slice(0, 80)}</option>
             ))}
           </select>
         </label>
@@ -39,39 +39,41 @@ export function ImpactView({ b, route, select, go }: ViewProps) {
       {route.seed && !seeds.length && <p className="warn">No node found for “{route.seed}”.</p>}
       {res && (
         <>
-          <p className="warn-box">{res.note}</p>
-          <p>Seeds: {seeds.map((s) => <NodeLink key={s} b={b} id={s} select={select} short />)}</p>
           {(["direct", "indirect"] as const).map((tier) => {
             const f = <T extends { tier: string }>(xs: T[]) => xs.filter((x) => x.tier === tier);
             const body = (
               <>
-                <h3>Potentially affected decisions ({f(res.decisions).length})</h3>
-                <ul>{f(res.decisions).map((d) => <li key={d.id}><NodeLink b={b} id={d.id} select={select} short /> <span className="muted">distance {d.distance} via {d.via}</span></li>)}</ul>
-                <h3>Potentially affected model calls ({f(res.modelCalls).length})</h3>
-                <ul>{f(res.modelCalls).map((d) => <li key={d.id}><NodeLink b={b} id={d.id} select={select} short /> <span className="muted">via {d.via}</span></li>)}</ul>
-                <h3>Potentially affected effects ({f(res.effects).length})</h3>
-                <ul>{f(res.effects).map((d) => <li key={d.id}><NodeLink b={b} id={d.id} select={select} short /> {b.idx.node(d.id)?.attrs.irreversible === true && <Chip kind="danger">irreversible</Chip>} <span className="muted">distance {d.distance}</span></li>)}</ul>
+                <h3>Decisions that may change ({f(res.decisions).length})</h3>
+                <ul>{f(res.decisions).map((d) => <li key={d.id}><NodeLink b={b} id={d.id} select={select} short /> </li>)}</ul>
+                <h3>Model calls that may change ({f(res.modelCalls).length})</h3>
+                <ul>{f(res.modelCalls).map((d) => <li key={d.id}><NodeLink b={b} id={d.id} select={select} short /> </li>)}</ul>
+                <h3>Effects that may change ({f(res.effects).length})</h3>
+                <ul>{f(res.effects).map((d) => <li key={d.id}><NodeLink b={b} id={d.id} select={select} short /> {b.idx.node(d.id)?.attrs.irreversible === true && <Chip kind="danger">irreversible</Chip>} </li>)}</ul>
               </>
             );
             return tier === "direct" ? (
               <div key={tier}>
-                <h3 className="tier">Direct — same iteration / call (highlighted)</h3>
+                <h3 className="tier">Right away</h3>
                 {body}
               </div>
             ) : (
               <details key={tier}>
-                <summary className="tier">Indirect — only via later turns or persisted state ({res.affected.filter((a) => a.tier === "indirect").length} items)</summary>
+                <summary className="tier">Later (through the conversation or saved data)</summary>
                 {body}
               </details>
             );
           })}
-          <p className="muted">{res.transitions.length} transitions downstream. Validate by re-running the affected scenarios and comparing traces (see below / Execution trace view).</p>
         </>
       )}
-      <VersionDiff {...{ b, select, go }} />
+      {b.diff && (
+        <details className="vdiff">
+          <summary>Compare with the previous version</summary>
+          <VersionDiff {...{ b, select, go }} />
+        </details>
+      )}
     </div>
   );
-  return <Split panelTitle="Impact analysis & version comparison" graph={<LensGraph b={b} lensId="impact" selected={route.node ?? seeds[0]} select={select} highlight={highlight} />} panel={panel} />;
+  return <Split defaultOpen panelTitle="What may change" graph={<LensGraph b={b} lensId="impact" selected={route.node ?? seeds[0]} select={select} highlight={highlight} />} panel={panel} />;
 }
 
 function VersionDiff({ b, select, go }: Pick<ViewProps, "b" | "select" | "go">) {
@@ -97,7 +99,7 @@ function VersionDiff({ b, select, go }: Pick<ViewProps, "b" | "select" | "go">) 
       </ul>
       {diff.removedNodes.length > 0 && (<><h4>Removed</h4><ul>{diff.removedNodes.map((n) => <li key={n.id}><code>{n.label}</code></li>)}</ul></>)}
       <h3>Observed behavior before / after</h3>
-      <p className="warn-box">{behavior.note}</p>
+      
       <table className="tbl">
         <thead><tr><th>Metric</th><th>{baseline}</th><th>this version</th></tr></thead>
         <tbody>

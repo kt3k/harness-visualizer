@@ -31,7 +31,7 @@ describe("story", () => {
   it("coding agent: trigger, loop, model choice, endings and tool table", () => {
     const s = buildStory(ir("coding-agent"));
     const main = s.flows.find((f) => f.title === "Coding agent")!;
-    expect(main.triggers[0].text).toMatch(/main\(argv\)/);
+    expect(main.triggers[0].text).toBe("started by an outside caller");
     const steps = flat(main.steps).join("\n");
     expect(steps).toMatch(/Ask the model/);
     expect(steps).toMatch(/Stop if more than 40 turns used/);
@@ -57,6 +57,19 @@ describe("story", () => {
     expect(s.warnings[0].level).toBe("danger");
     expect(s.warnings.map((w) => w.text).join("\n")).toMatch(/\$500/);
     expect(s.warnings.map((w) => w.text).join("\n")).toMatch(/send an e-mail with no code check/);
+  });
+  it("default text carries no evidence: no code locations, identifiers or model ids", () => {
+    for (const h of ["simple-tool-loop", "coding-agent", "support-refund-agent", "research-orchestrator"]) {
+      const s = buildStory(ir(h));
+      const all = [s.headline, ...s.warnings.map((w) => w.text), ...s.flows.flatMap((f) => [f.purpose ?? "", ...flat(f.steps), ...flat(f.triggers), ...flat(f.endings)]), ...s.tools.flatMap((t) => flat([...t.effects, ...t.checks, ...t.policy, ...t.promptSays]))].join("\n");
+      expect(all, h).not.toMatch(/src\/|\.ts\b|:\d+\)|\bverify\b|\binferred\b|\bstatic\b|claude-[a-z]|gpt-\d|_PROMPT\b|\bargv\b/);
+    }
+  });
+  it("uncertain claims are hedged in the wording", () => {
+    const s = buildStory(ir("support-refund-agent"));
+    expect(s.warnings.map((w) => w.text).join("\n")).toMatch(/seems to use a different limit/);
+    const c = buildStory(ir("coding-agent"));
+    expect(c.tools.find((t) => t.name === "delete_file")!.policy[0].text).toMatch(/^may /);
   });
   it("markdown respects strict redaction", () => {
     expect(storyMarkdown(ir("support-refund-agent"), { redaction: "strict" })).not.toMatch(/Never refund more than/);

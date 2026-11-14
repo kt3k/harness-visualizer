@@ -85,7 +85,6 @@ export function LensGraph(props: {
       <div className="lens-toolbar">
         <label title="Show plain-language labels instead of code"><input type="checkbox" checked={display.plain} onChange={(e) => setDisplay({ ...display, plain: e.target.checked })} /> plain labels</label>
         <label title="Hide loop heads, return points, conversation appends and reply filters; draw edges across them"><input type="checkbox" checked={display.simplify} onChange={(e) => setDisplay({ ...display, simplify: e.target.checked })} /> hide details</label>
-        <span className="muted">{L.vis.nodes.length} nodes shown</span>
         <button onClick={L.reset}>default</button>
         <button onClick={L.expandAll}>expand all</button>
         <button onClick={L.collapseAll}>collapse all</button>
@@ -108,8 +107,8 @@ export function LensGraph(props: {
   );
 }
 
-export function Split({ graph, panel, panelTitle }: { graph: ReactNode; panel: ReactNode; panelTitle: string }) {
-  const [open, setOpen] = useState(true);
+export function Split({ graph, panel, panelTitle, defaultOpen = false }: { graph: ReactNode; panel: ReactNode; panelTitle: string; defaultOpen?: boolean }) {
+  const [open, setOpen] = useState(defaultOpen);
   return (
     <div className={`split ${open ? "" : "collapsed"}`}>
       <div className="split-graph">{graph}</div>

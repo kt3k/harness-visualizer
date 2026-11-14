@@ -115,7 +115,7 @@ export function buildStory(ir: HarnessIR): Story {
 
   const procedureLine = (p: IRNode, depth: number): StoryLine | undefined => {
     if (p.attrs.role === "model-transport") return undefined;
-    if (p.kind === "Agent") return { text: `start the ${containerTitle(p).toLowerCase()}`, ids: [p.id], tone: "call", note: "see its own section" };
+    if (p.kind === "Agent") return { text: `start the ${containerTitle(p).toLowerCase()}`, ids: [p.id], tone: "call" };
     if (!interesting(p)) return undefined;
     const ds = idx.descendants(p.id);
     const hints: string[] = [];
@@ -147,10 +147,10 @@ export function buildStory(ir: HarnessIR): Story {
         const role = modelRole(n, ir);
         const tools = toolNames(n);
         const children: StoryLine[] = [{ text: `sees: ${contextSummary(n, ir).join("; ") || "(unresolved)"}`, ids: [n.id], tone: "data" }];
-        if (tools.length && a.toolChoice) children.push({ text: `must answer by filling in “${tools.join(", ")}” (structured output — no tool is executed)`, ids: [n.id], tone: "model" });
+        if (tools.length && a.toolChoice) children.push({ text: `must answer by filling in a “${tools.join(", ")}” form (nothing is executed)`, ids: [n.id], tone: "model" });
         else if (tools.length) children.push({ text: `may choose a tool: ${tools.join(", ")}`, ids: [n.id], tone: "model" });
         else children.push({ text: "replies with text", ids: [n.id], tone: "model" });
-        return { text: `Ask the model${a.model ? ` (${a.model})` : ""}${role ? ` — ${role}` : ""}`, ids: [n.id], tone: "model", children };
+        return { text: `Ask the model${role ? ` — ${role}` : ""}`, ids: [n.id], tone: "model", children };
       }
       case "Decision": {
         const outs = idx.outEdges(n.id, ["transition"]);
@@ -199,7 +199,7 @@ export function buildStory(ir: HarnessIR): Story {
       }
       case "ToolRequest": {
         const cands = idx.outEdges(n.id, ["dispatches"]).map((e) => e.label).filter(Boolean);
-        return { text: "Run the tool the model picked", note: cands.length ? `one of: ${cands.join(", ")} — see “What the model can do”` : undefined, ids: [n.id], tone: "model" };
+        return { text: "Run the tool the model picked", note: cands.length ? `one of: ${cands.join(", ")}` : undefined, ids: [n.id], tone: "model" };
       }
       case "Effect":
         return { text: nodePhrase(n, ir).text.replace(/^./, (x) => x.toUpperCase()), ids: [n.id], tone: "effect", danger: a.irreversible === true };
@@ -293,7 +293,7 @@ export function buildStory(ir: HarnessIR): Story {
         out.push({ text: `when ${ownerAgent ? `the ${containerTitle(ownerAgent).toLowerCase()}'s model` : "the model"} uses the tool “${from.attrs.name}”`, ids: [from.id], tone: "model" });
       } else if (from.kind === "Procedure" || from.kind === "Agent") {
         const viaEntry = entryEvents.find((ev) => idx.outEdges(ev.id, ["transition"]).some((t) => t.to === from.id));
-        if (viaEntry && !interestingOwn(from, agent)) out.push({ text: `${nodePhrase(viaEntry, ir).text} (which calls it)`, ids: [viaEntry.id, from.id], tone: "plain" });
+        if (viaEntry && !interestingOwn(from, agent)) out.push({ text: nodePhrase(viaEntry, ir).text, ids: [viaEntry.id, from.id], tone: "plain" });
         else out.push({ text: `called by ${containerTitle(from).toLowerCase()}`, ids: [from.id], tone: "plain" });
       } else if (from.kind === "ModelCall") {
         /* transport */
@@ -411,8 +411,8 @@ export function buildStory(ir: HarnessIR): Story {
           .filter((d) => (d.kind === "Decision" || d.kind === "Authorization") && new RegExp(`["'\`]${escapeRe(String(t.attrs.name))}["'\`]`).test(String(d.attrs.condition ?? "")) && !idx.isInside(d.id, t.id))
           .map((d) => {
             const outcome = String(d.attrs.outcomeText ?? d.attrs.rejectText ?? "");
-            const what = /\bask|confirm/i.test(outcome) ? "needs a human's OK" : /deny|denied|not allowed/i.test(outcome) || d.kind === "Authorization" ? "can be denied" : "special handling";
-            return { text: `${what} (permission policy in ${containerTitle(node(containerOfId(d.id))!).toLowerCase()})`, ids: [d.id], tone: "human" as Tone };
+            const what = /\bask|confirm/i.test(outcome) ? "may need a human's OK" : /deny|denied|not allowed/i.test(outcome) || d.kind === "Authorization" ? "may be denied by the permission policy" : "treated specially by the permission policy";
+            return { text: what, ids: [d.id], tone: "human" as Tone };
           }),
       );
       const agentTargets = [
@@ -428,11 +428,11 @@ export function buildStory(ir: HarnessIR): Story {
           .filter((d) => (d.kind === "Guard" || d.kind === "Authorization") && d.attrs.purpose === "budget")
           .map((d) => ({ text: `refuses if ${conditionPhrase(d).text}`, ids: [d.id], tone: "check" as Tone })),
       );
-      const unknown = dedupe(inside.filter((d) => d.kind === "Unknown").map((d) => ({ text: /dynamic|dynamically/.test(String(d.attrs.reason)) ? "loads and runs code at runtime (cannot be analysed)" : `unknown: ${d.attrs.reason}`, ids: [d.id], tone: "unknown" as Tone, danger: true })));
+      const unknown = dedupe(inside.filter((d) => d.kind === "Unknown").map((d) => ({ text: /dynamic|dynamically/.test(String(d.attrs.reason)) ? "loads and runs extra code while running (cannot be checked)" : `unknown: ${d.attrs.reason}`, ids: [d.id], tone: "unknown" as Tone, danger: true })));
       const promptSays = dedupe(
         nodes
           .filter((r) => r.kind === "PromptRule" && ((r.attrs.relatedTools as string[]) ?? []).includes(t.id))
-          .map((r) => ({ text: `“${r.attrs.text}”`, note: r.attrs.status === "prompt-only" ? "not enforced by code" : r.attrs.status === "possible-mismatch" ? "code uses a different limit" : "code check with similar terms exists (verify)", ids: [r.id], tone: "plain" as Tone, danger: r.attrs.status === "prompt-only" || r.attrs.status === "possible-mismatch" })),
+          .map((r) => ({ text: `“${r.attrs.text}”`, note: r.attrs.status === "prompt-only" ? "no code check for it was found" : r.attrs.status === "possible-mismatch" ? "the code seems to use a different limit" : r.attrs.status === "related-check" ? "related code exists, may not enforce it" : "a matching code check seems to exist", ids: [r.id], tone: "plain" as Tone, danger: r.attrs.status === "prompt-only" || r.attrs.status === "possible-mismatch" })),
       );
       const offeredTo = nodes
         .filter((m) => m.kind === "ModelCall" && idx.inEdges(m.id, ["offers"]).some((o) => o.from === t.id || o.from === t.parent))
@@ -472,6 +472,7 @@ export function buildStory(ir: HarnessIR): Story {
     ),
   );
 
+  const unknowns = nodes.filter((n) => n.kind === "Unknown");
   // ------------------------------------------------------------ touches
   const touchMap = new Map<string, StoryLine[]>();
   const touch = (system: string, l: StoryLine) => touchMap.set(system, dedupe([...(touchMap.get(system) ?? []), l]));
@@ -487,9 +488,9 @@ export function buildStory(ir: HarnessIR): Story {
   }
   const providers = new Map<string, string[]>();
   for (const m of nodes.filter((n) => n.kind === "ModelCall")) providers.set(String(m.attrs.provider ?? "model"), [...(providers.get(String(m.attrs.provider ?? "model")) ?? []), m.id]);
-  for (const [p, ids] of providers) touch(`${p === "anthropic" ? "Anthropic" : p === "openai" ? "OpenAI" : p} API (LLM)`, { text: `${ids.length} model call site(s)`, ids, tone: "model" });
+  for (const [p, ids] of providers) touch(`${p === "anthropic" ? "Anthropic" : p === "openai" ? "OpenAI" : p} API (LLM)`, { text: `the model is called from ${ids.length} place${ids.length > 1 ? "s" : ""}`, ids, tone: "model" });
   for (const h of nodes.filter((n) => n.kind === "HumanApproval")) touch("Humans", { text: nodePhrase(h, ir).text, ids: [h.id], tone: "human" });
-  for (const u of nodes.filter((n) => n.kind === "Unknown")) touch("Unknown (not analysable)", { text: String(u.attrs.reason), ids: [u.id], tone: "unknown", danger: true });
+  if (unknowns.length) touch("Not checkable", { text: "code loaded while it runs", ids: unknowns.map((u) => u.id), tone: "unknown", danger: true });
   const touches = [...touchMap].map(([system, actions]) => ({ system, actions }));
 
   // ------------------------------------------------------------ warnings
@@ -501,33 +502,30 @@ export function buildStory(ir: HarnessIR): Story {
     const g = ((r.attrs.matchedGuards as string[]) ?? []).map((x) => node(x)!).find((x) => x && Object.keys(x.attrs.constants ?? {}).length);
     const consts = (g?.attrs.constants ?? {}) as Record<string, number>;
     const lim = Object.entries(consts).map(([k, v]) => limitPhrase(k, v)).join(", ");
-    warnings.push({ level: "danger", text: `The prompt says “${r.attrs.text}”, but the code uses a different limit${lim ? `: ${lim}` : ""}.`, ids: [r.id, ...(g ? [g.id] : [])] });
+    warnings.push({ level: "danger", text: `The prompt says “${r.attrs.text}”, but the code seems to use a different limit${lim ? `: ${lim}` : ""}.`, ids: [r.id, ...(g ? [g.id] : [])] });
   }
   for (const r of nodes.filter((n) => n.kind === "PromptRule" && n.attrs.status === "prompt-only")) {
-    warnings.push({ level: "warn", text: `The prompt says “${r.attrs.text}”, but no code enforces it.`, ids: [r.id] });
+    warnings.push({ level: "warn", text: `The prompt says “${r.attrs.text}”, but no code check for it was found.`, ids: [r.id] });
   }
   for (const r of nodes.filter((n) => n.kind === "PromptRule" && n.attrs.status === "related-check")) {
-    warnings.push({ level: "info", text: `The prompt says “${r.attrs.text}”; related code exists but does not clearly enforce it — verify.`, ids: [r.id, ...((r.attrs.matchedGuards as string[]) ?? [])] });
+    warnings.push({ level: "info", text: `The prompt says “${r.attrs.text}”; related code exists but may not enforce it.`, ids: [r.id, ...((r.attrs.matchedGuards as string[]) ?? [])] });
   }
   for (const e of nodes.filter((n) => n.kind === "Effect" || (n.kind === "MemoryWrite" && n.attrs.effectCategory))) {
     const routes = (e.attrs.routes as { via: string[]; gates: string[] }[] | undefined) ?? [];
     const authz = (r: { gates: string[] }) => r.gates.some((g) => node(g)?.kind === "Authorization");
     if (routes.some(authz) && routes.some((r) => !authz(r))) {
-      const unchecked = routes.filter((r) => !authz(r)).map((r) => r.via.join(" → "));
-      warnings.push({ level: "warn", text: `“${nodePhrase(e, ir).text}” is permission-checked on some paths but not on: ${unchecked.join("; ")}.`, ids: [e.id] });
+      warnings.push({ level: "warn", text: `“${nodePhrase(e, ir).text}” is permission-checked on some paths but not on others.`, ids: [e.id] });
     }
   }
-  for (const u of nodes.filter((n) => n.kind === "Unknown")) warnings.push({ level: "warn", text: `Runs code that cannot be analysed (${u.attrs.reason}).`, ids: [u.id] });
+  if (unknowns.length) warnings.push({ level: "warn", text: unknowns.some((u) => /dynamic/.test(String(u.attrs.reason))) ? "Part of it loads extra code while it runs, and that code cannot be checked." : "Part of it cannot be checked from the code.", ids: unknowns.map((u) => u.id) });
 
-  // ------------------------------------------------------------ headline
-  const agents = nodes.filter((n) => n.kind === "Agent");
+  // ------------------------------------------------------------ headline: one sentence
   const effectWords = [...new Set(nodes.filter((n) => n.kind === "Effect").map((n) => nodePhrase(n, ir).text))];
-  const headline = [
-    `${agents.length ? `${agents.length} agent loop${agents.length > 1 ? "s" : ""}` : "No agent loop"}${agents.some((a) => a.attrs.role === "subagent") ? " (incl. subagents)" : ""}`,
-    `${nodes.filter((n) => n.kind === "ModelCall").length} model call site(s)`,
-    `${tools.length} tool(s) the model can choose`,
-    effectWords.length ? `side effects: ${effectWords.slice(0, 6).join(", ")}${effectWords.length > 6 ? ", …" : ""}` : "no side effects found",
-  ].join(" · ");
+  const hasModel = (f: Flow) => idx.descendants(f.id).some((d) => d.kind === "ModelCall");
+  const mainFlow = flows.find((f) => f.kind !== "subagent" && hasModel(f)) ?? flows.find((f) => f.kind !== "subagent");
+  const mainCall = mainFlow ? idx.descendants(mainFlow.id).filter((d) => d.kind === "ModelCall").sort((x, y) => line(x) - line(y))[0] : undefined;
+  const mainRole = mainCall ? modelRole(mainCall, ir) : undefined;
+  const headline = `${mainFlow ? mainFlow.title : ir.harness.name}${mainRole ? `: ${mainRole}` : ""}.${effectWords.length ? ` It can ${listJoin(effectWords.slice(0, 5))}${effectWords.length > 5 ? ", and more" : ""}.` : ""}`;
 
   const order = { danger: 0, warn: 1, info: 2 } as const;
   warnings.sort((a, b) => order[a.level] - order[b.level]);
@@ -536,6 +534,10 @@ export function buildStory(ir: HarnessIR): Story {
   function containerOfId(id: string): string {
     return [id, ...idx.ancestors(id)].find((x) => ["Agent", "Procedure", "Tool"].includes(node(x)?.kind ?? "")) ?? id;
   }
+}
+
+function listJoin(xs: string[]): string {
+  return xs.length <= 1 ? xs.join("") : `${xs.slice(0, -1).join(", ")} and ${xs[xs.length - 1]}`;
 }
 
 function escapeRe(s: string) {

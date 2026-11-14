@@ -11,7 +11,8 @@ const ICON: Record<string, string> = {
   "state.read": "⟲", "state.write": "✎", termination: "■", error: "✖", retry: "↻", cancel: "⊘", "loop.iteration": "↻", "agent.start": "▶", "agent.end": "◀", "run.start": "▶▶", "run.end": "◀◀", decision: "◇", "external.event": "⇥",
 };
 
-export function TraceView({ b, route, select, go, openSource, replaceSelect }: ViewProps) {
+export function TraceView({ b, route, select, go, openSource }: ViewProps) {
+  const [why, setWhy] = useState(false);
   const trace = b.traces.find((t) => t.id === route.trace) ?? b.traces[0];
   const [pos, setPos] = useState(0);
   const [playing, setPlaying] = useState(false);
@@ -32,9 +33,6 @@ export function TraceView({ b, route, select, go, openSource, replaceSelect }: V
   const cur = trace?.events[pos];
   const curNode = mapped[pos]?.nodeId;
   useEffect(() => {
-    // on phones the details are a bottom sheet: only open it when the user asks
-    const narrow = typeof matchMedia === "function" && matchMedia("(max-width: 800px)").matches;
-    if (curNode && curNode !== route.node && !narrow) replaceSelect(curNode);
     list.current?.querySelector(`[data-pos="${pos}"]`)?.scrollIntoView({ block: "nearest" });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pos]);
@@ -71,8 +69,6 @@ export function TraceView({ b, route, select, go, openSource, replaceSelect }: V
           </select>
         </label>
         {meta?.description && <p className="muted">{meta.description}</p>}
-        {meta?.adversarial && <p><Chip kind="warn">adversarial fixture</Chip> hand-crafted to exercise the checker</p>}
-        <p className="replay-note">Replay of <b>recorded</b> events: nothing is executed and no model is called. Live re-execution would require running the harness and is not supported here.</p>
         <div className="replay">
           <button onClick={() => setPos(0)} aria-label="First event">⏮</button>
           <button onClick={() => setPos((p) => Math.max(0, p - 1))} aria-label="Previous event">◀</button>
@@ -92,10 +88,7 @@ export function TraceView({ b, route, select, go, openSource, replaceSelect }: V
                 onClick={() => setPos(i)}
               >
                 <span className="evicon">{ICON[e.type] ?? "·"}</span>
-                <span className="evseq">#{e.seq}</span> <span className="evtype">{e.type}</span>
-                {e.name && <span className="evname"> {e.name}</span>}
-                {e.status && e.status !== "ok" && <Chip kind={e.status === "denied" || e.status === "rejected" || e.status === "error" ? "danger" : "neutral"}>{e.status}</Chip>}
-                {!m?.nodeId && <div className="warn small">unmapped: {m?.reason}</div>}
+                <span className={`evtext ${e.status === "denied" || e.status === "rejected" || e.status === "error" ? "warn" : ""}`}>{eventPhrase(e)}</span>
               </li>
             );
           })}
@@ -107,19 +100,28 @@ export function TraceView({ b, route, select, go, openSource, replaceSelect }: V
         )}
       </div>
       <div className="trace-main">
-        <LensGraph b={b} lensId="trace" selected={route.node} select={select} highlight={highlight} observed={observedSoFar} edgeHighlight={edgeHl} />
+        <LensGraph b={b} lensId="trace" selected={route.node ?? curNode} select={select} highlight={highlight} observed={observedSoFar} edgeHighlight={edgeHl} />
         {cur && (
           <div className="evdetail">
-            <b>#{cur.seq} {cur.type}</b> {cur.name} · span {cur.spanId}{cur.parentSpanId ? ` (parent ${cur.parentSpanId})` : ""} · {cur.ts}
-            {curNode ? <> → <NodeLink b={b} id={curNode} select={select} short /> <span className="muted">(mapped via {mapped[pos].via})</span></> : <span className="warn"> → not mapped</span>}
-            {curNode && b.idx.node(curNode)?.sourceRefs[0] && <> · <SourceLink b={b} r={b.idx.node(curNode)!.sourceRefs[0]} openSource={openSource} /></>}
-            {cur.outputSummary && <div className="muted">output: {cur.outputSummary}</div>}
-            {cur.attrs && <code className="small">{JSON.stringify(cur.attrs)}</code>}
+            <b>{eventPhrase(cur)}</b>
+            {curNode && <> — <NodeLink b={b} id={curNode} select={select} short /></>}
+            <button className={`why ${why ? "on" : ""}`} onClick={() => setWhy((x) => !x)} aria-expanded={why}>
+              why?
+            </button>
+            {why && (
+              <div className="evidence-box">
+                <div>#{cur.seq} {cur.type} · span {cur.spanId}{cur.parentSpanId ? ` (parent ${cur.parentSpanId})` : ""} · {cur.ts}</div>
+                <div>{curNode ? `matched to the code via ${mapped[pos].via}` : `not matched to the code: ${mapped[pos]?.reason}`}</div>
+                {curNode && b.idx.node(curNode)?.sourceRefs[0] && <SourceLink b={b} r={b.idx.node(curNode)!.sourceRefs[0]} openSource={openSource} />}
+                {cur.outputSummary && <div className="muted">output: {cur.outputSummary}</div>}
+                {cur.attrs && <code className="small">{JSON.stringify(cur.attrs)}</code>}
+              </div>
+            )}
           </div>
         )}
       </div>
-      <div className="trace-recon">
-        <h3>Spec vs. this run</h3>
+      <details className="trace-recon">
+        <summary>Compare this run with the code</summary>
         {rec && (
           <>
             <p>Mapped events: <b>{rec.mappingCoverage.mapped}/{rec.mappingCoverage.total}</b> · observable nodes seen: {rec.nodeCoverage.observedNodes}/{rec.nodeCoverage.observableNodes}</p>
@@ -136,7 +138,35 @@ export function TraceView({ b, route, select, go, openSource, replaceSelect }: V
             <ul className="small">{rec.unobservedBranches.slice(0, 40).map((u) => <li key={u.edgeId}><NodeLink b={b} id={u.nodeId} select={select} short /> <span className="elab">{u.label ?? "→"}</span></li>)}</ul>
           </>
         )}
-      </div>
+      </details>
     </div>
   );
+}
+
+const EVENT_TEXT: Record<string, (n?: string, st?: string) => string> = {
+  "run.start": () => "The run starts",
+  "run.end": () => "The run ends",
+  "agent.start": (n) => `An agent starts${n ? ` (${n})` : ""}`,
+  "agent.end": () => "The agent finishes",
+  "loop.iteration": () => "Next round of the loop",
+  "model.request": () => "The model is asked",
+  "model.response": (_n, st) => (st === "error" ? "The model's reply is unusable" : "The model replies"),
+  decision: () => "A branch is taken",
+  "tool.request": (n) => `The model asks to use “${n ?? "a tool"}”`,
+  "authz.decision": (_n, st) => (st === "denied" ? "A check refuses it" : "A check lets it through"),
+  "approval.request": () => "A human is asked for approval",
+  "approval.response": (_n, st) => (st === "rejected" ? "The human says no" : st === "pending" ? "Waiting for a human" : "The human says yes"),
+  "tool.execute": (n, st) => `${st === "error" ? "Failed to run" : "Runs"} “${n ?? "the tool"}”`,
+  "tool.result": (_n, st) => (st === "denied" ? "The model is told it was refused" : "The result goes back to the model"),
+  "state.read": () => "Reads stored data",
+  "state.write": () => "Saves data",
+  error: () => "An error happens",
+  retry: () => "Tries again",
+  cancel: () => "Cancelled",
+  termination: (n) => `Ends${n ? `: ${n}` : ""}`,
+  "external.event": (n) => `Started from outside${n ? ` (${n})` : ""}`,
+};
+
+function eventPhrase(e: { type: string; name?: string; status?: string }): string {
+  return (EVENT_TEXT[e.type] ?? (() => e.type))(e.name, e.status);
 }

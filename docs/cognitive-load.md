@@ -69,3 +69,29 @@ lower bound for a user who knows where to look, not a human study.
   story kept as the reference.
 * **Per-trace narrative** ("the model read 2 files, a human rejected a delete, the run ended
   because …") for the execution trace view.
+
+## Second iteration: show nothing that was not asked for
+
+Policy: by default the UI shows **only answers**. Everything else is revealed by an explicit
+action. There are three levels:
+
+| Level | Shown when | Content |
+|---|---|---|
+| L0 answer | always | what the harness does, in plain language (one-sentence summary, steps, tools, what it touches, warnings) |
+| L1 details | the user clicks a line or a node | an explanation of that item: who decides, what happens next, what can stop it, what it may lead to |
+| L2 evidence | the user presses **why?** on a line, opens **Evidence** in the details, or turns on **Evidence: on** in the header | source location and code, how sure the tool is (static / inferred / runtime / unknown), the reasoning, recorded-run observations, raw attributes |
+
+What moved out of the default view: the generation disclaimer, the synthetic-fixture banner,
+statistics, evidence chips, file paths, function signatures, model ids, constant names,
+"verify" notes, code tooltips, observation badges outside the trace view, node counts, keyboard
+hints, the evidence legend in the empty details panel, the always-visible details panel itself,
+the below-graph tables (collapsed), and the trace/spec comparison (collapsed).
+
+Uncertain claims (option A): the default text never states a heuristic result as fact; the
+*wording* carries the uncertainty ("seems to use a different limit", "may need a human's OK",
+"likely retries on failure", "no code check for it was found"), and the reason is at L2.
+
+Regression guard: `scripts/e2e.mjs` checks 24 default screens (4 harnesses × 6 views) for
+visible chips, observation badges, an open details panel, and evidence vocabulary (file paths,
+`static`/`inferred`/`runtime`, model ids, constant names). It also checks that "why?" does
+reveal the source location on request. `tests/story.test.ts` checks the generated text itself.

@@ -13,6 +13,17 @@ import { TraceView } from "./views/TraceView";
 import { ImpactView } from "./views/ImpactView";
 import { CoverageView } from "./views/CoverageView";
 import { Home } from "./views/Home";
+import { useEvidenceMode } from "./Evidence";
+
+/** Header switch: evidence is hidden unless the user turns it on (or asks per line with "why?"). */
+function EvidenceSwitch() {
+  const [on, set] = useEvidenceMode();
+  return (
+    <button className={`ghost ev-switch ${on ? "on" : ""}`} aria-pressed={on} onClick={() => set(!on)} title="Show the evidence behind each statement">
+      Evidence: {on ? "on" : "off"}
+    </button>
+  );
+}
 import { StoryView } from "./views/StoryView";
 
 export type ViewId = "story" | "overview" | "decisions" | "effects" | "memory" | "trace" | "impact" | "coverage";
@@ -161,6 +172,7 @@ export function App() {
         )}
         <div className="spacer" />
         {bundle && <Search b={bundle} onPick={(id) => select(id)} />}
+        {bundle && <EvidenceSwitch />}
         {bundle && <ExportMenu b={bundle} />}
         <button className="ghost legend-btn" onClick={() => setLegend((x) => !x)} aria-expanded={legend} aria-label="Legend">
           <span className="legend-full">Legend</span>
@@ -171,8 +183,7 @@ export function App() {
       {!route.harness && index && <Home index={index} evaluation={evaluation} />}
       {route.harness && !bundle && <div className="loading">Loading {route.harness}…</div>}
       {viewProps && (
-        <main className="main">
-          {bundle!.ir.harness.synthetic && <div className="synthetic-banner">Synthetic fixture harness — written to exercise the analyzer; not production code.</div>}
+        <main className={`main ${route.node ? "with-detail" : ""}`}>
           <section className="view" aria-label={VIEWS.find((v) => v.id === route.view)?.title}>
             {route.view === "story" && <StoryView {...viewProps} />}
             {route.view === "overview" && <OverviewView {...viewProps} />}
@@ -183,7 +194,7 @@ export function App() {
             {route.view === "impact" && <ImpactView {...viewProps} />}
             {route.view === "coverage" && <CoverageView {...viewProps} evaluation={evaluation} />}
           </section>
-          <aside className={`detail ${route.node ? "has-node" : ""}`} aria-label="Node details">
+          <aside className={`detail ${route.node ? "has-node" : ""}`} aria-label="Details" hidden={!route.node}>
             <Detail b={bundle!} id={route.node} select={select} go={go} openSource={setSource} />
           </aside>
         </main>
